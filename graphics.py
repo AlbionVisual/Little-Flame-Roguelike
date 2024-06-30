@@ -35,11 +35,16 @@ class Roguelike(arcade.Window):
         self.player_sprite.center_y = 120
         self.scene.add_sprite("Player", self.player_sprite)
 
-        for x in range(0, 1250, 64):
-            wall = arcade.Sprite(":resources:images/tiles/grassMid.png", TILE_SCALING)
-            wall.center_x = x
-            wall.center_y = 32
-            self.scene.add_sprite("Walls", wall)
+        field = [[randint(0,1) if i != 0 and i != 15 and j != 0 and j != 15 else 1 for i in range(16)] for j in range(16)]
+        field[1][1] = 0
+
+        for i, line in enumerate(field):
+            for j, cell in enumerate(line):
+                if cell == 1:
+                    wall = arcade.Sprite(":resources:images/tiles/grassMid.png", TILE_SCALING)
+                    wall.center_x = 32 + j * 64
+                    wall.center_y = 32 + i * 64
+                    self.scene.add_sprite("Walls", wall)
 
         self.physics_engine = arcade.PhysicsEngineSimple(
             self.player_sprite, self.scene.get_sprite_list("Walls")
