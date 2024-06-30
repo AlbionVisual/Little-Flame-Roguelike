@@ -1,0 +1,82 @@
+import arcade
+from random import randint
+
+SCREEN_WIDTH = 1000
+SCREEN_HEIGHT = 650
+SCREEN_TITLE = "Simple roguelike graphics"
+
+CHARACTER_SCALING = 0.5
+TILE_SCALING = 0.5
+
+PLAYER_MOVEMENT_SPEED = 5
+
+class Roguelike(arcade.Window):
+
+    def __init__(self):
+
+        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+
+        arcade.set_background_color(arcade.csscolor.DARK_GRAY)
+
+        self.scene = None
+
+        self.player_sprite = None
+
+
+    def setup(self):
+
+        self.scene = arcade.Scene()
+
+        self.scene.add_sprite_list("Player")
+        self.scene.add_sprite_list("Walls", use_spatial_hash=True)
+
+        self.player_sprite = arcade.Sprite(":resources:images/animated_characters/female_adventurer/femaleAdventurer_idle.png", CHARACTER_SCALING)
+        self.player_sprite.center_x = 64
+        self.player_sprite.center_y = 120
+        self.scene.add_sprite("Player", self.player_sprite)
+
+        for x in range(0, 1250, 64):
+            wall = arcade.Sprite(":resources:images/tiles/grassMid.png", TILE_SCALING)
+            wall.center_x = x
+            wall.center_y = 32
+            self.scene.add_sprite("Walls", wall)
+
+        self.physics_engine = arcade.PhysicsEngineSimple(
+            self.player_sprite, self.scene.get_sprite_list("Walls")
+        )
+    
+    def on_key_press(self, key, modifiers):
+        if key == arcade.key.W or key == arcade.key.UP:
+            self.player_sprite.change_y = PLAYER_MOVEMENT_SPEED
+        elif key == arcade.key.S or key == arcade.key.DOWN:
+            self.player_sprite.change_y = -PLAYER_MOVEMENT_SPEED
+        elif key == arcade.key.A or key == arcade.key.LEFT:
+            self.player_sprite.change_x = -PLAYER_MOVEMENT_SPEED
+        elif key == arcade.key.D or key == arcade.key.RIGHT:
+            self.player_sprite.change_x = PLAYER_MOVEMENT_SPEED
+    
+    def on_key_release(self, key, modifiers):
+        if key == arcade.key.W or key == arcade.key.UP:
+            self.player_sprite.change_y = 0
+        elif key == arcade.key.S or key == arcade.key.DOWN:
+            self.player_sprite.change_y = 0
+        elif key == arcade.key.A or key == arcade.key.LEFT:
+            self.player_sprite.change_x = 0
+        elif key == arcade.key.D or key == arcade.key.RIGHT:
+            self.player_sprite.change_x = 0
+
+    def on_draw(self):
+
+        self.clear()
+
+        self.physics_engine.update()
+
+        
+
+        self.scene.draw()
+
+
+
+window = Roguelike()
+window.setup()
+arcade.run()
