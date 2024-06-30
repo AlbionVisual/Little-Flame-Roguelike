@@ -22,6 +22,7 @@ class Roguelike(arcade.Window):
 
         self.player_sprite = None
 
+        self.camera = None
 
     def setup(self):
 
@@ -49,6 +50,8 @@ class Roguelike(arcade.Window):
         self.physics_engine = arcade.PhysicsEngineSimple(
             self.player_sprite, self.scene.get_sprite_list("Walls")
         )
+
+        self.camera = arcade.Camera(self.width, self.height)
     
     def on_key_press(self, key, modifiers):
         if key == arcade.key.W or key == arcade.key.UP:
@@ -70,13 +73,22 @@ class Roguelike(arcade.Window):
         elif key == arcade.key.D or key == arcade.key.RIGHT:
             self.player_sprite.change_x = 0
 
+    def center_camera_to_player(self):
+        screen_center_x = self.player_sprite.center_x - self.camera.viewport_width / 2
+        screen_center_y = self.player_sprite.center_y - self.camera.viewport_height / 2
+
+        self.camera.move_to((screen_center_x, screen_center_y))
+
+    def on_update(self, delta_time):
+        self.physics_engine.update()
+        self.center_camera_to_player()
+
+
     def on_draw(self):
 
         self.clear()
 
-        self.physics_engine.update()
-
-        
+        self.camera.use()
 
         self.scene.draw()
 
