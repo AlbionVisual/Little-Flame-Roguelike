@@ -5,8 +5,8 @@ SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 650
 SCREEN_TITLE = "Simple roguelike graphics"
 
-CHARACTER_SCALING = 0.5
-TILE_SCALING = 0.5
+CHARACTER_SCALING = 0.125
+TILE_SCALING = 4
 
 PLAYER_MOVEMENT_SPEED = 5
 
@@ -30,9 +30,9 @@ class Roguelike(arcade.Window):
 
         self.scene.add_sprite_list("Player")
         self.scene.add_sprite_list("Walls", use_spatial_hash=True)
-
-        self.player_sprite = arcade.Sprite(":resources:images/animated_characters/female_adventurer/femaleAdventurer_idle.png", CHARACTER_SCALING)
-        self.player_sprite.center_x = 64
+    
+        self.player_sprite = arcade.Sprite("Textures/little_flame.gif", CHARACTER_SCALING)
+        self.player_sprite.center_x = 120
         self.player_sprite.center_y = 120
         self.scene.add_sprite("Player", self.player_sprite)
 
@@ -42,7 +42,7 @@ class Roguelike(arcade.Window):
         for i, line in enumerate(field):
             for j, cell in enumerate(line):
                 if cell == 1:
-                    wall = arcade.Sprite(":resources:images/tiles/grassMid.png", TILE_SCALING)
+                    wall = arcade.Sprite("Textures/cobblestone.png", TILE_SCALING)
                     wall.center_x = 32 + j * 64
                     wall.center_y = 32 + i * 64
                     self.scene.add_sprite("Walls", wall)
