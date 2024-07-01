@@ -76,7 +76,7 @@ class Roguelike(arcade.Window):
         for i, line in enumerate(field):
             for j, cell in enumerate(line):
                 if cell == 1:
-                    wall = arcade.Sprite("Textures/cobblestone.png", TILE_SCALING)
+                    wall = arcade.Sprite("Textures/concrete_gray.png", TILE_SCALING)
                     wall.center_x = 32 + j * 64
                     wall.center_y = 32 + i * 64
                     self.scene.add_sprite("Walls", wall)
@@ -87,25 +87,44 @@ class Roguelike(arcade.Window):
 
         self.camera = arcade.Camera(self.width, self.height)
     
+    def process_keychange(self):
+        if self.right_pressed and not self.left_pressed:
+            self.player_sprite.change_x = PLAYER_MOVEMENT_SPEED
+        elif self.left_pressed and not self.right_pressed:
+            self.player_sprite.change_x = -PLAYER_MOVEMENT_SPEED
+        else:
+            self.player_sprite.change_x = 0
+
+        if self.up_pressed and not self.down_pressed:
+            self.player_sprite.change_y = PLAYER_MOVEMENT_SPEED
+        elif self.down_pressed and not self.up_pressed:
+            self.player_sprite.change_y = -PLAYER_MOVEMENT_SPEED
+        else:
+            self.player_sprite.change_y = 0
+
     def on_key_press(self, key, modifiers):
         if key == arcade.key.W or key == arcade.key.UP:
-            self.player_sprite.change_y = PLAYER_MOVEMENT_SPEED
+            self.up_pressed = True
         elif key == arcade.key.S or key == arcade.key.DOWN:
-            self.player_sprite.change_y = -PLAYER_MOVEMENT_SPEED
+            self.down_pressed = True
         elif key == arcade.key.A or key == arcade.key.LEFT:
-            self.player_sprite.change_x = -PLAYER_MOVEMENT_SPEED
+            self.left_pressed = True
         elif key == arcade.key.D or key == arcade.key.RIGHT:
-            self.player_sprite.change_x = PLAYER_MOVEMENT_SPEED
+            self.right_pressed = True
+        
+        self.process_keychange()
     
     def on_key_release(self, key, modifiers):
         if key == arcade.key.W or key == arcade.key.UP:
-            self.player_sprite.change_y = 0
+            self.up_pressed = False
         elif key == arcade.key.S or key == arcade.key.DOWN:
-            self.player_sprite.change_y = 0
+            self.down_pressed = False
         elif key == arcade.key.A or key == arcade.key.LEFT:
-            self.player_sprite.change_x = 0
+            self.left_pressed = False
         elif key == arcade.key.D or key == arcade.key.RIGHT:
-            self.player_sprite.change_x = 0
+            self.right_pressed = False
+
+        self.process_keychange()
 
     def center_camera_to_player(self):
         screen_center_x = self.player_sprite.center_x - self.camera.viewport_width / 2
