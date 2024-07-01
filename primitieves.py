@@ -14,7 +14,19 @@ class Point():
     
     def __add__(self, p):
         return Point(self.x + p.x, self.y + p.y)
-
+    
+    def __iter__(self):
+        self.current = None
+        return self
+    
+    def __next__(self):
+        if self.current == None:
+            self.current = self.x
+            return self.x
+        elif self.current == self.x:
+            self.current = self.y
+            return self.y
+        raise StopIteration
 class Cell():
     p = Point()
     isWall = False
