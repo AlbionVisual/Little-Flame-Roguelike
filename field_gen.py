@@ -17,7 +17,7 @@ class Chunk():
         self.genField(seed)
     
     def genField(self, seed):
-        self.width = (seed * (self.p.x + self.p.y) % 11 + 6) # Random staff
+        self.width = ((seed * (self.p.x + self.p.y) % 11 + 6) // 2) * 2 # Random staff
         ws = (8 - self.width // 2, 8 + self.width // 2)
         ws1 = (8 - self.width // 2, 8 + self.width // 2 - 1)
         for i in range(*ws):
@@ -92,7 +92,7 @@ class Map:
         chunk1 = self.get(p1)
         chunk2 = self.get(p2)
         m = min(chunk1.width, chunk2.width)
-        randnum = randnum % (m-2) + 8 - m // 2
+        randnum = randnum % (m-2) + 9 - m // 2
         
         if vec.x == -1:
             chunk1.paths['left'] = randnum
@@ -112,6 +112,6 @@ class Map:
 
     def hash_func(self, *data):
         res = 0
-        for x in (*data, self.seed):
-            res = (res * 31 + x) & 0xFFFFFFFF
+        for x in data:
+            res = (res * 31 + x * self.seed) & 0xFFFFFFFF
         return res
