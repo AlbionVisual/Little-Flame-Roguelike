@@ -21,9 +21,9 @@ class Point():
     
     def __next__(self):
         if self.current == None:
-            self.current = self.x
+            self.current = 'x'
             return self.x
-        elif self.current == self.x:
+        elif self.current == 'x':
             self.current = self.y
             return self.y
         raise StopIteration
@@ -38,3 +38,9 @@ class Cell():
     def __repr__(self):
         if self.isWall: return f'{self.p} is wall'
         else: return f'{self.p} isn\'t wall'
+
+from time import time
+p1 = Point(0,0)
+t0 = time()
+tuple(p1)
+print(time() - t0)
