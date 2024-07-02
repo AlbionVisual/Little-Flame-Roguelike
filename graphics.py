@@ -7,11 +7,11 @@ SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 650
 SCREEN_TITLE = "Simple roguelike graphics"
 
-CHARACTER_SCALING = 0.125
-TILE_SCALING = 4
-TILE_SIZE = 64
+CHARACTER_SCALING = 1 / 16
+TILE_SCALING = 2
+TILE_SIZE = 32
 
-PLAYER_MOVEMENT_SPEED = 5
+PLAYER_MOVEMENT_SPEED = 3
 PLAYER_ANIM_FRAMES = 33
 RIGHT_FACING = 0
 LEFT_FACING = 1
@@ -69,8 +69,8 @@ class Roguelike(arcade.Window):
         self.scene.add_sprite_list("Walls", use_spatial_hash=True)
     
         self.player_sprite = PlayerCharacter()
-        self.player_sprite.center_x = 64 * 7 + 32
-        self.player_sprite.center_y = 64 * 7 + 32
+        self.player_sprite.center_x = TILE_SIZE * 7 + TILE_SIZE // 2
+        self.player_sprite.center_y = TILE_SIZE * 7 + TILE_SIZE // 2
         self.scene.add_sprite("Player", self.player_sprite)
 
         self.map = Map(7687906)
@@ -79,7 +79,7 @@ class Roguelike(arcade.Window):
         self.map.genArea((chunk_x - 1, chunk_y))
         self.map.genArea((chunk_x + 1, chunk_y))
         self.map.genArea((chunk_x, chunk_y - 1))
-        # self.map.genArea((chunk_x, chunk_y + 1))
+        self.map.genArea((chunk_x, chunk_y + 1))
 
         for x in range(chunk_x - 1, chunk_x + 2):
             for y in range(chunk_y - 1, chunk_y + 2):
@@ -88,15 +88,13 @@ class Roguelike(arcade.Window):
                 for i, line in enumerate(chunk.field):
                     for j, cell in enumerate(line):
                         if cell == 2:
-
-                            # print(TILE_SIZE // 2 + j * TILE_SIZE + TILE_SIZE * 16 * x, TILE_SIZE // 2 + i * TILE_SIZE + TILE_SIZE * 16 * y)
                             chunk.field[i][j] = arcade.Sprite("Textures/concrete_gray.png", TILE_SCALING)
                             chunk.field[i][j].center_x = TILE_SIZE // 2 + j * TILE_SIZE + TILE_SIZE * 16 * x
                             chunk.field[i][j].center_y = TILE_SIZE // 2 + i * TILE_SIZE + TILE_SIZE * 16 * y
                             self.scene.add_sprite("Walls", chunk.field[i][j])
 
         self.physics_engine = arcade.PhysicsEngineSimple(
-            self.player_sprite, []#, self.scene.get_sprite_list("Walls")
+            self.player_sprite, self.scene.get_sprite_list("Walls")
         )
 
         self.camera = arcade.Camera(self.width, self.height)

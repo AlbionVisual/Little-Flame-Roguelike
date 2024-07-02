@@ -87,13 +87,12 @@ class Map:
 
     def setPath(self, p1, vec):
         p2 = p1 + vec
-        randnum = (self.seed * (abs(p1.x) + abs(p1.y) + abs(p2.x) + abs(p2.y)))
-        if randnum % 5 == 5 - 1: return
-        # print("gened")
+        randnum = self.hash_func(min(p1.x,p2.x), min(p1.y,p2.y), max(p2.x, p1.x), max(p2.y, p1.y))
+        if randnum % 3 == 3 - 1: return
         chunk1 = self.get(p1)
         chunk2 = self.get(p2)
         m = min(chunk1.width, chunk2.width)
-        randnum = randnum % (m-1) + 8 - m // 2
+        randnum = randnum % (m-2) + 8 - m // 2
         
         if vec.x == -1:
             chunk1.paths['left'] = randnum
@@ -111,9 +110,8 @@ class Map:
     def __contains__(self, p):
         return tuple(p) in self.chunks
 
-# p1 = Point(1,0)
-# p2 = Point(3,7)
-# # c = Chunk(p1, seed)
-# m = Map()
-# m.genChunk(Point(1, 0))
-# print(m)
+    def hash_func(self, *data):
+        res = 0
+        for x in (*data, self.seed):
+            res = (res * 31 + x) & 0xFFFFFFFF
+        return res
