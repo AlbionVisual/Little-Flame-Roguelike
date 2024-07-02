@@ -1,5 +1,7 @@
 import arcade
 from random import randint
+from field_gen import Map
+from time import time
 
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 650
@@ -7,6 +9,7 @@ SCREEN_TITLE = "Simple roguelike graphics"
 
 CHARACTER_SCALING = 0.125
 TILE_SCALING = 4
+TILE_SIZE = 64
 
 PLAYER_MOVEMENT_SPEED = 5
 PLAYER_ANIM_FRAMES = 33
@@ -70,19 +73,30 @@ class Roguelike(arcade.Window):
         self.player_sprite.center_y = 64 * 7 + 32
         self.scene.add_sprite("Player", self.player_sprite)
 
-        field = [[randint(0,1) if i != 0 and i != 15 and j != 0 and j != 15 else 1 for i in range(16)] for j in range(16)]
-        field[7][7] = 0
+        self.map = Map(7687906)
+        chunk_x, chunk_y = self.player_sprite.center_x // (16 * 64), self.player_sprite.center_y // (16 * 64)
+        self.map.genArea((chunk_x, chunk_y))
+        self.map.genArea((chunk_x - 1, chunk_y))
+        self.map.genArea((chunk_x + 1, chunk_y))
+        self.map.genArea((chunk_x, chunk_y - 1))
+        # self.map.genArea((chunk_x, chunk_y + 1))
 
-        for i, line in enumerate(field):
-            for j, cell in enumerate(line):
-                if cell == 1:
-                    wall = arcade.Sprite("Textures/concrete_gray.png", TILE_SCALING)
-                    wall.center_x = 32 + j * 64
-                    wall.center_y = 32 + i * 64
-                    self.scene.add_sprite("Walls", wall)
+        for x in range(chunk_x - 1, chunk_x + 2):
+            for y in range(chunk_y - 1, chunk_y + 2):
+                print(self.map.get((x, y)), self.map.get((x, y)).paths)
+                chunk = self.map.get((x, y))
+                for i, line in enumerate(chunk.field):
+                    for j, cell in enumerate(line):
+                        if cell == 2:
+
+                            # print(TILE_SIZE // 2 + j * TILE_SIZE + TILE_SIZE * 16 * x, TILE_SIZE // 2 + i * TILE_SIZE + TILE_SIZE * 16 * y)
+                            chunk.field[i][j] = arcade.Sprite("Textures/concrete_gray.png", TILE_SCALING)
+                            chunk.field[i][j].center_x = TILE_SIZE // 2 + j * TILE_SIZE + TILE_SIZE * 16 * x
+                            chunk.field[i][j].center_y = TILE_SIZE // 2 + i * TILE_SIZE + TILE_SIZE * 16 * y
+                            self.scene.add_sprite("Walls", chunk.field[i][j])
 
         self.physics_engine = arcade.PhysicsEngineSimple(
-            self.player_sprite, self.scene.get_sprite_list("Walls")
+            self.player_sprite, []#, self.scene.get_sprite_list("Walls")
         )
 
         self.camera = arcade.Camera(self.width, self.height)
@@ -132,6 +146,9 @@ class Roguelike(arcade.Window):
 
         self.camera.move_to((screen_center_x, screen_center_y))
 
+    def player_chunk_coords(self):
+        return self.player_sprite.center_x
+
     def on_update(self, delta_time):
         self.physics_engine.update()
         self.center_camera_to_player()
@@ -150,6 +167,6 @@ class Roguelike(arcade.Window):
 
 
 
-window = Roguelike()
-window.setup()
-arcade.run()
+# window = Roguelike()
+# window.setup()
+# arcade.run()
