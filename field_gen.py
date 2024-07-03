@@ -12,7 +12,7 @@ class Chunk():
 
     def __init__(self, p, seed):
         self.p = Point(*tuple(p))
-        self.field = [[0]*16 for _ in range(16)]
+        self.field = [[[0] for _ in range(16)] for _ in range(16)]
         self.paths = { 'left': -1, 'top': -1, 'right': -1, 'bottom': -1 }
         self.genField(seed)
     
@@ -22,29 +22,29 @@ class Chunk():
         ws1 = (8 - self.width // 2, 8 + self.width // 2 - 1)
         for i in range(*ws):
             for j in range(*ws):
-                self.field[i][j] = 1 if i not in ws1 and j not in ws1 else 2
-    
+                self.field[i][j] = [1 if i not in ws1 and j not in ws1 else 2]    
+
     def addPaths(self):
         if self.paths['left'] != -1:
             for x in range(9 - self.width // 2):
-                self.field[self.paths['left'] - 1][x] = 2
-                self.field[self.paths['left']][x] = 1
-                self.field[self.paths['left'] + 1][x] = 2
+                self.field[self.paths['left'] - 1][x] = [2]
+                self.field[self.paths['left']][x] = [1]
+                self.field[self.paths['left'] + 1][x] = [2]
         if self.paths['right'] != -1:
             for x in range(7 + self.width // 2, 16):
-                self.field[self.paths['right'] - 1][x] = 2
-                self.field[self.paths['right']][x] = 1
-                self.field[self.paths['right'] + 1][x] = 2
+                self.field[self.paths['right'] - 1][x] = [2]
+                self.field[self.paths['right']][x] = [1]
+                self.field[self.paths['right'] + 1][x] = [2]
         if self.paths['top'] != -1:
             for y in range(7 + self.width // 2, 16):
-                self.field[y][self.paths['top'] - 1] = 2
-                self.field[y][self.paths['top']] = 1
-                self.field[y][self.paths['top'] + 1] = 2
+                self.field[y][self.paths['top'] - 1] = [2]
+                self.field[y][self.paths['top']] = [1]
+                self.field[y][self.paths['top'] + 1] = [2]
         if self.paths['bottom'] != -1:
             for y in range(9 - self.width // 2):
-                self.field[y][self.paths['bottom'] - 1] = 2
-                self.field[y][self.paths['bottom']] = 1
-                self.field[y][self.paths['bottom'] + 1] = 2
+                self.field[y][self.paths['bottom'] - 1] = [2]
+                self.field[y][self.paths['bottom']] = [1]
+                self.field[y][self.paths['bottom'] + 1] = [2]
 
     def __repr__(self, show = False):
         if show: print(self.field)
@@ -68,6 +68,29 @@ class Map:
     def genChunk(self, p):
         self.chunks[tuple(p)] = Chunk(p, self.seed)
     
+    def genLight(self, p, f, f_args, strength = 5):
+        p = Point(*p)
+        for i in range(int(p.x) - strength - 3, int(p.x) + strength + 3):
+            for j in range(int(p.y) - strength - 3, int(p.y) + strength + 3):
+                cell = self.getCell(Point(i, j))
+                if (i - p.x)**2 + (j - p.y)**2 <= strength**2:
+                    if cell[0] in (2, 4):
+                        f(cell, f_args[6])
+                        cell[0] = 6
+                    if cell[0] in (1, 3):
+                        f(cell, f_args[5])
+                        cell[0] = 5
+                elif len(cell) > 1:
+                    if cell[0] == 6:
+                        f(cell, f_args[2])
+                        cell[0] = 2
+                    if cell[0] == 5:
+                        f(cell, f_args[1])
+                        cell[0] = 1
+
+    def getCell(self, p):
+        return self.get(Point(p.x // 16, p.y // 16)).field[p.y % 16][p.x % 16]
+
     def get(self, p):
         if p not in self:
             self.genChunk(p)
@@ -88,7 +111,7 @@ class Map:
     def setPath(self, p1, vec):
         p2 = p1 + vec
         randnum = self.hash_func(min(p1.x,p2.x), min(p1.y,p2.y), max(p2.x, p1.x), max(p2.y, p1.y))
-        if randnum % 3 == 3 - 1: return
+        if randnum % 5 >= 3: return
         chunk1 = self.get(p1)
         chunk2 = self.get(p2)
         m = min(chunk1.width, chunk2.width)

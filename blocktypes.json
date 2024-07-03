@@ -1,5 +1,9 @@
 {
     "0": "Nothing",
-    "1": "Air",
-    "2": "Wall" 
+    "1": "Floor",
+    "2": "Wall",
+    "3": "Hidden_floor",
+    "4": "Hidden_wall",
+    "5": "Lighten_floor",
+    "6": "Lighten_wall"
 }

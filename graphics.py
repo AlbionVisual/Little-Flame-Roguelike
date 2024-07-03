@@ -47,6 +47,15 @@ class PlayerCharacter(arcade.Sprite):
             self.cur_texture = 0
         self.texture = self.walk_textures[self.cur_texture][self.character_face_direction]
 
+class TileSprite(arcade.Sprite):
+
+    def __init__(self, texture):
+        super().__init__(scale = TILE_SCALING)
+        self.change_texture(texture)
+    
+    def change_texture(self, texture):
+        self.texture = texture
+
 class Roguelike(arcade.Window):
 
     def __init__(self):
@@ -64,9 +73,16 @@ class Roguelike(arcade.Window):
         self.jump_needs_reset = False
 
     def setup(self):
+        self.tile_textures = {
+            "floor": arcade.load_texture("Textures/concrete_gray_darken.png"), 
+            "wall": arcade.load_texture("Textures/concrete_gray.png"),
+            "lighten_floor": arcade.load_texture("Textures/hardened_clay_stained_yellow_darken.png"),
+            "lighten_wall": arcade.load_texture("Textures/concrete_yellow.png")
+        }
 
         self.scene = arcade.Scene()
 
+        self.scene.add_sprite_list("Floor", use_spatial_hash=True)
         self.scene.add_sprite_list("Player")
         self.scene.add_sprite_list("Walls", use_spatial_hash=True)
     
@@ -76,7 +92,9 @@ class Roguelike(arcade.Window):
         self.scene.add_sprite("Player", self.player_sprite)
 
         self.map = Map(7687908)
+        print('Seed: ', self.map.seed)
         self.gen_map()
+        self.draw_map()
 
         self.physics_engine = arcade.PhysicsEngineSimple(
             self.player_sprite, self.scene.get_sprite_list("Walls")
@@ -139,24 +157,38 @@ class Roguelike(arcade.Window):
         self.map.genArea((chunk_x, chunk_y - 1))
         self.map.genArea((chunk_x, chunk_y + 1))
 
+        self.player_sprite.chunk = self.player_sprite.get_chunk()
+    
+    def draw_map(self, chunk_x = None, chunk_y = None):
+        if chunk_x == None: chunk_x = self.player_sprite.chunk[0]
+        if chunk_y == None: chunk_y = self.player_sprite.chunk[1]
         for x in range(chunk_x - 1, chunk_x + 2):
             for y in range(chunk_y - 1, chunk_y + 2):
                 chunk = self.map.get((x, y))
                 for i, line in enumerate(chunk.field):
                     for j, cell in enumerate(line):
-                        if cell != 1 and cell != 0:
-                            chunk.field[i][j] = arcade.Sprite("Textures/concrete_gray.png", TILE_SCALING)
-                            chunk.field[i][j].center_x = TILE_SIZE // 2 + j * TILE_SIZE + TILE_SIZE * 16 * x
-                            chunk.field[i][j].center_y = TILE_SIZE // 2 + i * TILE_SIZE + TILE_SIZE * 16 * y
-                            self.scene.add_sprite("Walls", chunk.field[i][j])
-
-        self.player_sprite.chunk = self.player_sprite.get_chunk()
-        print(chunk_x, chunk_y)
+                        if cell[0] != 0:
+                            if cell[0] in (5, 6): cell[0] -= 4
+                            chunk.field[i][j] = [cell[0], TileSprite(self.tile_textures["wall"])]
+                            chunk.field[i][j][1].center_x = TILE_SIZE // 2 + j * TILE_SIZE + TILE_SIZE * 16 * x
+                            chunk.field[i][j][1].center_y = TILE_SIZE // 2 + i * TILE_SIZE + TILE_SIZE * 16 * y
+                            if cell[0] == 1:
+                                chunk.field[i][j][1].change_texture(self.tile_textures["floor"])
+                                self.scene.add_sprite("Floor", chunk.field[i][j][1])
+                            elif cell[0] == 2:
+                                self.scene.add_sprite("Walls", chunk.field[i][j][1])
 
     def on_update(self, delta_time):
         self.physics_engine.update()
         self.center_camera_to_player()
-        if self.player_sprite.get_chunk() != self.player_sprite.chunk: self.gen_map()
+        if self.player_sprite.get_chunk() != self.player_sprite.chunk:
+            self.gen_map()
+            self.draw_map()
+        self.map.genLight(
+            (self.player_sprite.center_x / TILE_SIZE, self.player_sprite.center_y / TILE_SIZE),
+            lambda cell, arg: cell[1].change_texture(arg),
+            (0, self.tile_textures["floor"], self.tile_textures["wall"], 0, 0, self.tile_textures["lighten_floor"], self.tile_textures["lighten_wall"])
+        )
         self.scene.update_animation(
             delta_time, ["Player", "Walls"]
         )
@@ -168,9 +200,3 @@ class Roguelike(arcade.Window):
         self.camera.use()
 
         self.scene.draw()
-
-
-
-# window = Roguelike()
-# window.setup()
-# arcade.run()
