@@ -13,6 +13,7 @@ PLAYER_MOVEMENT_SPEED = 3
 PLAYER_ANIM_FRAMES = 33
 RIGHT_FACING = 0
 LEFT_FACING = 1
+TILE_HIT_BOX = ((-8.0, -8.0), (8.0, -8.0), (8.0, 8.0), (-8.0, 8.0))
 
 def load_texture_pair(filename):
     flipped_img = arcade.load_texture(filename, flipped_horizontally=True)
@@ -49,9 +50,9 @@ class PlayerCharacter(arcade.Sprite):
 
 class TileSprite(arcade.Sprite):
 
-    def __init__(self, texture):
+    def __init__(self, texture = 'invisible'):
         super().__init__(scale = TILE_SCALING)
-        self.change_texture(texture)
+        if texture[:3] != 'inv': self.change_texture(texture)
     
     def change_texture(self, texture):
         self.texture = texture
@@ -169,13 +170,20 @@ class Roguelike(arcade.Window):
                     for j, cell in enumerate(line):
                         if cell[0] != 0:
                             if cell[0] in (5, 6): cell[0] -= 4
-                            chunk.field[i][j] = [cell[0], TileSprite(self.tile_textures["wall"])]
+                            chunk.field[i][j] = [cell[0], TileSprite()]
                             chunk.field[i][j][1].center_x = TILE_SIZE // 2 + j * TILE_SIZE + TILE_SIZE * 16 * x
                             chunk.field[i][j][1].center_y = TILE_SIZE // 2 + i * TILE_SIZE + TILE_SIZE * 16 * y
-                            if cell[0] == 1:
+                            if cell[0] == 3:
+                                chunk.field[i][j][1].set_hit_box(TILE_HIT_BOX)
+                                self.scene.add_sprite("Floor", chunk.field[i][j][1])
+                            elif cell[0] == 4:
+                                chunk.field[i][j][1].set_hit_box(TILE_HIT_BOX)
+                                self.scene.add_sprite("Walls", chunk.field[i][j][1])
+                            elif cell[0] == 1:
                                 chunk.field[i][j][1].change_texture(self.tile_textures["floor"])
                                 self.scene.add_sprite("Floor", chunk.field[i][j][1])
                             elif cell[0] == 2:
+                                chunk.field[i][j][1].change_texture(self.tile_textures["wall"])
                                 self.scene.add_sprite("Walls", chunk.field[i][j][1])
 
     def on_update(self, delta_time):
