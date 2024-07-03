@@ -25,22 +25,22 @@ class Chunk():
                 self.field[i][j] = [3 if i not in ws1 and j not in ws1 else 4]    
 
     def addPaths(self):
-        if self.paths['left'] != -1 and self.field[self.paths['left'] - 1][0][0] == 0:
+        if self.paths['left'] != -1 and self.field[self.paths['left']][0][0] not in (1, 3, 5):
             for x in range(9 - self.width // 2):
                 self.field[self.paths['left'] - 1][x] = [4]
                 self.field[self.paths['left']][x] = [3]
                 self.field[self.paths['left'] + 1][x] = [4]
-        if self.paths['right'] != -1 and self.field[self.paths['right'] - 1][15][0] == 0:
+        if self.paths['right'] != -1 and self.field[self.paths['right']][15][0] not in (1, 3, 5):
             for x in range(7 + self.width // 2, 16):
                 self.field[self.paths['right'] - 1][x] = [4]
                 self.field[self.paths['right']][x] = [3]
                 self.field[self.paths['right'] + 1][x] = [4]
-        if self.paths['top'] != -1 and self.field[15][self.paths['top'] - 1][0] == 0:
+        if self.paths['top'] != -1 and self.field[15][self.paths['top']][0] not in (1, 3, 5):
             for y in range(7 + self.width // 2, 16):
                 self.field[y][self.paths['top'] - 1] = [4]
                 self.field[y][self.paths['top']] = [3]
                 self.field[y][self.paths['top'] + 1] = [4]
-        if self.paths['bottom'] != -1 and self.field[0][self.paths['bottom'] - 1][0] == 0:
+        if self.paths['bottom'] != -1 and self.field[0][self.paths['bottom']][0] not in (1, 3, 5):
             for y in range(9 - self.width // 2):
                 self.field[y][self.paths['bottom'] - 1] = [4]
                 self.field[y][self.paths['bottom']] = [3]

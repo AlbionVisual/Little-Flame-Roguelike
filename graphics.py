@@ -59,8 +59,8 @@ class TileSprite(arcade.Sprite):
 
 class Roguelike(arcade.Window):
 
-    def __init__(self):
-
+    def __init__(self, seed = -1):
+        self.seed = seed
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
         arcade.set_background_color(arcade.csscolor.BLACK)
         self.scene = None
@@ -92,7 +92,7 @@ class Roguelike(arcade.Window):
         self.player_sprite.center_y = TILE_SIZE * 7 + TILE_SIZE // 2
         self.scene.add_sprite("Player", self.player_sprite)
 
-        self.map = Map(7687908)
+        self.map = Map(self.seed)
         print('Seed: ', self.map.seed)
         self.gen_map()
         self.draw_map()
