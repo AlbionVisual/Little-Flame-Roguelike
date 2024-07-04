@@ -1,5 +1,6 @@
 import arcade
 from field_gen import Map
+from time import time
 
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 650
@@ -67,6 +68,7 @@ class Roguelike(arcade.Window):
         self.player_sprite = None
         self.camera = None
         self.physics_engine = None
+        self.lighten = None
         self.left_pressed = False
         self.right_pressed = False
         self.up_pressed = False
@@ -94,8 +96,14 @@ class Roguelike(arcade.Window):
 
         self.map = Map(self.seed)
         print('Seed: ', self.map.seed)
+
         self.gen_map()
         self.draw_map()
+        self.lighten = (set(), set())
+        arg = self.map.genTreeLight(
+                (self.player_sprite.center_x // TILE_SIZE, self.player_sprite.center_y // TILE_SIZE)
+        )
+        self.change_lights(arg)
 
         self.physics_engine = arcade.PhysicsEngineSimple(
             self.player_sprite, self.scene.get_sprite_list("Walls")
@@ -160,6 +168,26 @@ class Roguelike(arcade.Window):
 
         self.player_sprite.chunk = self.player_sprite.get_chunk()
     
+    def change_lights(self, new_lights):
+        self.lighten[0]
+        self.lighten[1]
+        new_lights[0]
+        new_lights[1]
+
+        # print(new_lights[0] - self.lighten[0])
+        # print(self.lighten[0] - new_lights[0])
+        for i in range(2):
+            for cell in self.lighten[i] - new_lights[i]:
+                if i == 1: cell.change_texture(self.tile_textures["floor"])
+                else: cell.change_texture(self.tile_textures["wall"])
+
+            for cell in new_lights[i] - self.lighten[i]:
+                if i == 1: cell.change_texture(self.tile_textures["lighten_floor"])
+                else: cell.change_texture(self.tile_textures["lighten_wall"])
+
+        self.lighten = new_lights
+        # print("End of generation")
+
     def draw_map(self, chunk_x = None, chunk_y = None):
         if chunk_x == None: chunk_x = self.player_sprite.chunk[0]
         if chunk_y == None: chunk_y = self.player_sprite.chunk[1]
@@ -192,11 +220,18 @@ class Roguelike(arcade.Window):
         if self.player_sprite.get_chunk() != self.player_sprite.chunk:
             self.gen_map()
             self.draw_map()
-        self.map.genLight(
-            (self.player_sprite.center_x / TILE_SIZE, self.player_sprite.center_y / TILE_SIZE),
-            lambda cell, arg: cell[1].change_texture(arg),
-            (0, self.tile_textures["floor"], self.tile_textures["wall"], 0, 0, self.tile_textures["lighten_floor"], self.tile_textures["lighten_wall"])
+
+        # self.map.genLight(
+        #     (self.player_sprite.center_x / TILE_SIZE, self.player_sprite.center_y / TILE_SIZE),
+        #     lambda cell, arg: cell[1].change_texture(arg),
+        #     (0, self.tile_textures["floor"], self.tile_textures["wall"], 0, 0, self.tile_textures["lighten_floor"], self.tile_textures["lighten_wall"])
+        # )
+
+        arg = self.map.genTreeLight(
+                (int(self.player_sprite.center_x // TILE_SIZE), int(self.player_sprite.center_y // TILE_SIZE))
         )
+        if arg != self.lighten: self.change_lights(arg)
+
         self.scene.update_animation(
             delta_time, ["Player", "Walls"]
         )

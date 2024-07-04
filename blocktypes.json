@@ -1,9 +1,9 @@
 {
-    "0": "Nothing",
-    "1": "Floor",
-    "2": "Wall",
-    "3": "Hidden_floor",
-    "4": "Hidden_wall",
-    "5": "Lighten_floor",
-    "6": "Lighten_wall"
+    "0": "nothing",
+    "1": "floor",
+    "2": "wall",
+    "3": "hidden_floor",
+    "4": "hidden_wall",
+    "5": "lighten_floor",
+    "6": "lighten_wall"
 }

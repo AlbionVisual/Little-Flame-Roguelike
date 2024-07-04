@@ -2,8 +2,6 @@ from random import randint
 from pprint import pprint as print 
 from primitieves import *
 
-# seed = 7687906
-
 class Chunk():
     field = [[0]*16 for _ in range(16)]
     p = Point()
@@ -68,7 +66,7 @@ class Map:
     def genChunk(self, p):
         self.chunks[tuple(p)] = Chunk(p, self.seed)
     
-    def genLight(self, p, f, f_args, strength = 5):
+    def genLight(self, p, f, f_args, strength = 5): # simpliest circle
         p = Point(*p)
         for i in range(int(p.x) - strength - 3, int(p.x) + strength + 3):
             for j in range(int(p.y) - strength - 3, int(p.y) + strength + 3):
@@ -87,6 +85,35 @@ class Map:
                     if cell[0] == 5:
                         f(cell, f_args[1])
                         cell[0] = 1
+    
+    def genTreeLight(self, p, strength = 5):
+        vecs = [Point(-1,0), Point(0,1), Point(1,0), Point(0,-1), Point(-1,-1), Point(-1,1), Point(1,1), Point(1,-1)]
+        walls = set()
+        floor = set()
+        queue = []
+        checked = []
+        def checkCell(cell):
+            nonlocal queue
+            nonlocal checked
+            el = self.getCell(Point(*cell["coord"]))
+            if el[0] in (2, 4, 6):
+                walls.add(el[1])
+                el[0] = 6
+            if el[0] in (1, 3, 5): 
+                floor.add(el[1])
+                el[0] = 5
+                for vec in vecs:
+                    pi = Point(*cell["coord"]) + vec
+                    if tuple(pi) not in checked and cell["strength"] > 0:
+                        queue = [{"coord": (pi.x, pi.y), "strength": cell["strength"] - (1 if sum(abs(i) for i in vec) == 1 else  1.41421) }] + queue
+                        checked += [tuple(pi)]
+
+        checkCell({"coord": tuple(p), "strength": strength})
+        while queue:
+            el = queue.pop()
+            checkCell(el)
+        
+        return walls, floor
 
     def getCell(self, p):
         return self.get(Point(p.x // 16, p.y // 16)).field[p.y % 16][p.x % 16]
