@@ -1,6 +1,5 @@
 import arcade
 from field_gen import Map
-from time import time
 
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 650
@@ -10,6 +9,7 @@ CHARACTER_SCALING = 1 / 16
 TILE_SCALING = 2
 TILE_SIZE = 32
 
+LOOT_SCALING = 0.2
 PLAYER_MOVEMENT_SPEED = 3
 PLAYER_ANIM_FRAMES = 33
 RIGHT_FACING = 0
@@ -58,6 +58,16 @@ class TileSprite(arcade.Sprite):
     def change_texture(self, texture):
         self.texture = texture
 
+class LootSprite(arcade.Sprite):
+    def __init__(self, texture = None):
+        super().__init__(scale = LOOT_SCALING)
+        if not texture == None: self.change_texture(texture)
+        self.pos = None
+        self.chunk = None
+    
+    def change_texture(self, texture):
+        self.texture = texture
+
 class Roguelike(arcade.Window):
 
     def __init__(self, seed = -1):
@@ -74,6 +84,8 @@ class Roguelike(arcade.Window):
         self.up_pressed = False
         self.down_pressed = False
         self.jump_needs_reset = False
+        self.gui_camera = None
+        self.score = 0
 
     def setup(self):
         self.tile_textures = {
@@ -82,12 +94,16 @@ class Roguelike(arcade.Window):
             "lighten_floor": arcade.load_texture("Textures/hardened_clay_stained_yellow_darken.png"),
             "lighten_wall": arcade.load_texture("Textures/concrete_yellow.png")
         }
+        self.loot_textures = {
+            "stick": arcade.load_texture("Textures/log.png")
+        }
 
         self.scene = arcade.Scene()
 
         self.scene.add_sprite_list("Floor", use_spatial_hash=True)
         self.scene.add_sprite_list("Player")
         self.scene.add_sprite_list("Walls", use_spatial_hash=True)
+        self.scene.add_sprite_list("Loot", use_spatial_hash=True)
     
         self.player_sprite = PlayerCharacter()
         self.player_sprite.center_x = TILE_SIZE * 7 + TILE_SIZE // 2
@@ -110,6 +126,8 @@ class Roguelike(arcade.Window):
         )
 
         self.camera = arcade.Camera(self.width, self.height)
+        self.gui_camera = arcade.Camera(self.width, self.height)
+        self.score = 0
     
     def process_keychange(self):
         if self.right_pressed and not self.left_pressed:
@@ -169,13 +187,6 @@ class Roguelike(arcade.Window):
         self.player_sprite.chunk = self.player_sprite.get_chunk()
     
     def change_lights(self, new_lights):
-        self.lighten[0]
-        self.lighten[1]
-        new_lights[0]
-        new_lights[1]
-
-        # print(new_lights[0] - self.lighten[0])
-        # print(self.lighten[0] - new_lights[0])
         for i in range(2):
             for cell in self.lighten[i] - new_lights[i]:
                 if i == 1: cell.change_texture(self.tile_textures["floor"])
@@ -184,13 +195,18 @@ class Roguelike(arcade.Window):
             for cell in new_lights[i] - self.lighten[i]:
                 if i == 1: cell.change_texture(self.tile_textures["lighten_floor"])
                 else: cell.change_texture(self.tile_textures["lighten_wall"])
+        
+        for stick in self.scene["Loot"]:
+            if self.map.get(stick.chunk).field[stick.pos[0]][stick.pos[1]][0] == 5:
+                stick.change_texture(self.loot_textures["stick"])
+
 
         self.lighten = new_lights
-        # print("End of generation")
 
     def draw_map(self, chunk_x = None, chunk_y = None):
         if chunk_x == None: chunk_x = self.player_sprite.chunk[0]
         if chunk_y == None: chunk_y = self.player_sprite.chunk[1]
+        self.scene["Loot"].clear()
         for x in range(chunk_x - 1, chunk_x + 2):
             for y in range(chunk_y - 1, chunk_y + 2):
                 chunk = self.map.get((x, y))
@@ -213,6 +229,15 @@ class Roguelike(arcade.Window):
                             elif cell[0] == 2:
                                 chunk.field[i][j][1].change_texture(self.tile_textures["wall"])
                                 self.scene.add_sprite("Walls", chunk.field[i][j][1])
+                for xi, yi in chunk.loot:
+                    if chunk.field[yi][xi][0] == 1: stick = LootSprite(self.loot_textures["stick"])
+                    else: stick = LootSprite()
+                    stick.set_hit_box(TILE_HIT_BOX)
+                    stick.center_x = TILE_SIZE * 16 * x + TILE_SIZE // 2 + TILE_SIZE * xi
+                    stick.center_y = TILE_SIZE * 16 * y + TILE_SIZE // 2 + TILE_SIZE * yi
+                    stick.pos = (xi, yi)
+                    stick.chunk = (x, y)
+                    self.scene.add_sprite("Loot", stick)
 
     def on_update(self, delta_time):
         self.physics_engine.update()
@@ -232,6 +257,16 @@ class Roguelike(arcade.Window):
         )
         if arg != self.lighten: self.change_lights(arg)
 
+        loot_hit_list = arcade.check_for_collision_with_list(
+            self.player_sprite, self.scene["Loot"]
+        )
+        for loot in loot_hit_list:
+            self.map.get(loot.chunk).loot -= {loot.pos,}
+            self.scene["Loot"].remove(loot)
+            loot.remove_from_sprite_lists()
+            del loot
+            self.score += 1
+
         self.scene.update_animation(
             delta_time, ["Player", "Walls"]
         )
@@ -243,3 +278,12 @@ class Roguelike(arcade.Window):
         self.camera.use()
 
         self.scene.draw()
+
+        self.gui_camera.use()
+
+        arcade.draw_text(
+            f'Sticks burn: {self.score}',
+            10, 10,
+            arcade.csscolor.WHITE,
+            18
+        )

@@ -4,6 +4,7 @@ from primitieves import *
 
 class Chunk():
     field = [[0]*16 for _ in range(16)]
+    loot = set()
     p = Point()
     width = 6
     paths = { 'left': -1, 'top': -1, 'right': -1, 'bottom': -1 }
@@ -12,6 +13,7 @@ class Chunk():
         self.p = Point(*tuple(p))
         self.field = [[[0] for _ in range(16)] for _ in range(16)]
         self.paths = { 'left': -1, 'top': -1, 'right': -1, 'bottom': -1 }
+        self.loot = set()
         self.genField(seed)
     
     def genField(self, seed):
@@ -20,7 +22,12 @@ class Chunk():
         ws1 = (8 - self.width // 2, 8 + self.width // 2 - 1)
         for i in range(*ws):
             for j in range(*ws):
-                self.field[i][j] = [3 if i not in ws1 and j not in ws1 else 4]    
+                self.field[i][j] = [3 if i not in ws1 and j not in ws1 else 4]
+                
+        for i in range(self.width // 2):
+            if self.hash_func(self.width, self.p.x, self.p.y, i) % 16 >= 14:
+                coord = int(self.hash_func(self.width, self.p.x, self.p.y) % (self.width - 2) + 9 - self.width // 2)
+                self.loot.add((coord, coord))
 
     def addPaths(self):
         if self.paths['left'] != -1 and self.field[self.paths['left']][0][0] not in (1, 3, 5):
@@ -47,6 +54,12 @@ class Chunk():
     def __repr__(self, show = False):
         if show: print(self.field)
         return f'Chunk {self.p}'
+
+    def hash_func(self, *data):
+        res = 0
+        for x in data:
+            res = (res * 31 + x) & 0xFFFFFFFF
+        return res
 
 class Map:
     seed = -1
