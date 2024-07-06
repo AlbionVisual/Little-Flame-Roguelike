@@ -22,7 +22,6 @@ def load_texture_pair(filename):
     return [img, flipped_img]
 
 class PlayerCharacter(arcade.Sprite):
-
     def __init__(self):
         super().__init__()
         self.character_face_direction = RIGHT_FACING
@@ -50,7 +49,6 @@ class PlayerCharacter(arcade.Sprite):
         self.texture = self.walk_textures[self.cur_texture][self.character_face_direction]
 
 class TileSprite(arcade.Sprite):
-
     def __init__(self, texture = 'invisible'):
         super().__init__(scale = TILE_SCALING)
         if texture[:3] != 'inv': self.change_texture(texture)
@@ -64,6 +62,7 @@ class LootSprite(arcade.Sprite):
         if not texture == None: self.change_texture(texture)
         self.pos = None
         self.chunk = None
+        self.type = None
     
     def change_texture(self, texture):
         self.texture = texture
@@ -179,10 +178,6 @@ class Roguelike(arcade.Window):
 
         chunk_x, chunk_y = self.player_sprite.get_chunk()
         self.map.genArea((chunk_x, chunk_y))
-        self.map.genArea((chunk_x - 1, chunk_y))
-        self.map.genArea((chunk_x + 1, chunk_y))
-        self.map.genArea((chunk_x, chunk_y - 1))
-        self.map.genArea((chunk_x, chunk_y + 1))
 
         self.player_sprite.chunk = self.player_sprite.get_chunk()
     
@@ -229,13 +224,15 @@ class Roguelike(arcade.Window):
                             elif cell[0] == 2:
                                 chunk.field[i][j][1].change_texture(self.tile_textures["wall"])
                                 self.scene.add_sprite("Walls", chunk.field[i][j][1])
-                for xi, yi in chunk.loot:
+                for coord, data in chunk.loot.items():
+                    xi, yi = coord
                     if chunk.field[yi][xi][0] == 1: stick = LootSprite(self.loot_textures["stick"])
                     else: stick = LootSprite()
                     stick.set_hit_box(TILE_HIT_BOX)
                     stick.center_x = TILE_SIZE * 16 * x + TILE_SIZE // 2 + TILE_SIZE * xi
                     stick.center_y = TILE_SIZE * 16 * y + TILE_SIZE // 2 + TILE_SIZE * yi
                     stick.pos = (xi, yi)
+                    stick.type = data
                     stick.chunk = (x, y)
                     self.scene.add_sprite("Loot", stick)
 
@@ -261,9 +258,9 @@ class Roguelike(arcade.Window):
             self.player_sprite, self.scene["Loot"]
         )
         for loot in loot_hit_list:
-            self.map.get(loot.chunk).loot -= {loot.pos,}
             self.scene["Loot"].remove(loot)
             loot.remove_from_sprite_lists()
+            del self.map.get(loot.chunk).loot[loot.pos]
             del loot
             self.score += 1
 
