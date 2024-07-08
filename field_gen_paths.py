@@ -61,7 +61,7 @@ class ChunkPaths():
             res = (res * 31 + x * ChunkPaths.seed) & 0xFFFFFFFF
         return res
 
-class Map:
+class MapPaths:
     def __init__(self, seed = -1):
         if seed < 0:
             seed = randint(1e6,1e10)

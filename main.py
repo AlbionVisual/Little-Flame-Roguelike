@@ -1,6 +1,9 @@
 from graphics import Roguelike
 import arcade
+import json
 
-window = Roguelike(245262140)
+settings = json.load(open('settings.json', 'r'))
+
+window = Roguelike(**settings)
 window.setup()
 arcade.run()
