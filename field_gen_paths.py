@@ -29,7 +29,7 @@ class ChunkPaths():
                 self.field[i][j] = [3 if i not in ws1 and j not in ws1 else 4]
                 
         for i in range(ChunkPaths.settings["LOOT_SPAWN_ATTEMPTS"]):
-            if self.hash_func(self.width, self.p.x, self.p.y, i) % 100 >= ChunkPaths.settings["LOOT_SPAWN_CHANCE"]:
+            if self.hash_func(self.width, self.p.x, self.p.y, i) % 100 <= ChunkPaths.settings["LOOT_SPAWN_CHANCE"]:
                 coord_x = int(self.hash_func(self.width, self.p.x, self.p.y) % (self.width - 2) + 9 - self.width // 2)
                 coord_y = int(self.hash_func(self.width, self.p.y, self.p.x) % (self.width - 2) + 9 - self.width // 2)
                 self.loot[(coord_x, coord_y)] = self.hash_func(self.width, self.p.x, self.p.y) % ChunkPaths.settings["LOOT_TYPES_AMOUNT"]

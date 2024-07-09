@@ -124,7 +124,7 @@ class Roguelike(arcade.Window):
         self.loot_textures = [
             arcade.load_texture('Textures/apple.png'),
             arcade.load_texture('Textures/book.png'),
-            arcade.load_texture('Textures/apple.png'),
+            arcade.load_texture('Textures/carrot.png'),
             arcade.load_texture('Textures/compass.png'),
             arcade.load_texture('Textures/chainmail_helmet.png'),
             arcade.load_texture('Textures/feather.png'),
@@ -162,9 +162,13 @@ class Roguelike(arcade.Window):
             self.player_sprite, self.scene.get_sprite_list("Walls")
         )
 
+        self.interface = arcade.Scene()
+        self.interface.add_sprite_list("Icons", use_spatial_hash=True)
+        self.labels = [None] * self.settings["LOOT_TYPES_AMOUNT"]
+
         self.camera = arcade.Camera(self.width, self.height)
         self.gui_camera = arcade.Camera(self.width, self.height)
-        self.score = 0
+        self.score = [0] * self.settings["LOOT_TYPES_AMOUNT"]
     
     def process_keychange(self):
         if self.right_pressed and not self.left_pressed:
@@ -298,8 +302,18 @@ class Roguelike(arcade.Window):
             self.scene["Loot"].remove(loot)
             loot.remove_from_sprite_lists()
             del self.map.get(loot.chunk).loot[loot.pos]
-            del loot
-            self.score += 1
+            if not self.score[loot.type]:
+                loot.center_x = 20
+                loot.center_y = loot.type * 40 + 20
+                loot.pos = None
+                loot.chunk = None
+                self.interface.add_sprite("Icons",loot)
+                self.score[loot.type] += 1
+                self.labels[loot.type] = arcade.Text('1', 32, loot.type * 40 + 4, font_size=10)
+            else:
+                self.score[loot.type] += 1
+                self.labels[loot.type].text = str(self.score[loot.type])
+                del loot
 
         self.scene.update_animation(
             delta_time, ["Player"]
@@ -315,9 +329,7 @@ class Roguelike(arcade.Window):
 
         self.gui_camera.use()
 
-        arcade.draw_text(
-            f'Logs burn: {self.score}',
-            10, 10,
-            arcade.csscolor.WHITE,
-            18
-        )
+        self.interface.draw()
+        for label in self.labels: 
+            if label:
+                label.draw()
