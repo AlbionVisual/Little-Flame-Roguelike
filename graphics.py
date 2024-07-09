@@ -7,20 +7,22 @@ default_settings = {
     'SCREEN_TITLE': "Simple Roguelike graphics",
     'CHARACTER_SCALING': 1 / 16,
     'TILE_SCALING': 2,
-    'LOOT_SCALING': 1 / 5,
+    'LOOT_SCALING': 2,
     'TILE_SIZE': 32,
     'RIGHT_FACING': 0,
     'LEFT_FACING': 1,
     'PLAYER_MOVEMENT_SPEED': 3,
     'PLAYER_ANIM_FRAMES': 33,
     'TILE_HIT_BOX': ((-8.0, -8.0), (8.0, -8.0), (8.0, 8.0), (-8.0, 8.0)),
-    'LOOT_HIT_BOX': ((-32.0, -32.0), (32.0, -32.0), (32.0, 32.0), (-32.0, 32.0)),
+    'LOOT_HIT_BOX': ((-8.0, -8.0), (8.0, -8.0), (8.0, 8.0), (-8.0, 8.0)),
     'FLOOR_TEXTURE': "Textures/concrete_gray_darken.png",
     'WALL_TEXTURE': "Textures/concrete_gray.png",
     'LIGHTEN_FLOOR_TEXTURE': "Textures/hardened_clay_stained_yellow_darken.png",
     'LIGHTEN_WALL_TEXTURE': "Textures/concrete_yellow.png",
     'LOG_TEXTURE': "Textures/log.png",
-
+    'LOOT_SPAWN_ATTEMPTS': 5,
+    'LOOT_SPAWN_CHANCE': 20,
+    'LOOT_TYPES_AMOUNT': 10,
 }
 
 def load_texture_pair(filename):
@@ -119,9 +121,18 @@ class Roguelike(arcade.Window):
             "lighten_floor": arcade.load_texture(self.settings['LIGHTEN_FLOOR_TEXTURE']),
             "lighten_wall": arcade.load_texture(self.settings['LIGHTEN_WALL_TEXTURE'])
         }
-        self.loot_textures = {
-            "log": arcade.load_texture(self.settings['LOG_TEXTURE'])
-        }
+        self.loot_textures = [
+            arcade.load_texture('Textures/apple.png'),
+            arcade.load_texture('Textures/book.png'),
+            arcade.load_texture('Textures/apple.png'),
+            arcade.load_texture('Textures/compass.png'),
+            arcade.load_texture('Textures/chainmail_helmet.png'),
+            arcade.load_texture('Textures/feather.png'),
+            arcade.load_texture('Textures/fish.png'),
+            arcade.load_texture('Textures/stone_sword.png'),
+            arcade.load_texture('Textures/wood_axe.png'),
+            arcade.load_texture('Textures/stick.png')
+        ]
 
         self.scene = arcade.Scene()
 
@@ -135,6 +146,7 @@ class Roguelike(arcade.Window):
         self.player_sprite.center_y = self.settings['TILE_SIZE'] * 7 + self.settings['TILE_SIZE'] // 2
         self.scene.add_sprite("Player", self.player_sprite)
 
+        MapPaths.settings = self.settings
         self.map = MapPaths(self.seed)
         print('Seed: ', self.map.seed)
 
@@ -216,9 +228,9 @@ class Roguelike(arcade.Window):
                 if i == 1: cell.change_texture(self.tile_textures["lighten_floor"])
                 else: cell.change_texture(self.tile_textures["lighten_wall"])
         
-        for log in self.scene["Loot"]:
-            if self.map.get(log.chunk).field[log.pos[0]][log.pos[1]][0] == 5:
-                log.change_texture(self.loot_textures["log"])
+        for loot in self.scene["Loot"]:
+            if self.map.get(loot.chunk).field[loot.pos[0]][loot.pos[1]][0] == 5:
+                loot.change_texture(self.loot_textures[loot.type])
 
 
         self.lighten = new_lights
@@ -251,15 +263,15 @@ class Roguelike(arcade.Window):
                                 self.scene.add_sprite("Walls", chunk.field[i][j][1])
                 for coord, data in chunk.loot.items():
                     xi, yi = coord
-                    if chunk.field[yi][xi][0] in (1, 5): log = LootSprite(self.loot_textures["log"])
-                    else: log = LootSprite()
-                    log.set_hit_box(self.settings['LOOT_HIT_BOX'])
-                    log.center_x = self.settings['TILE_SIZE'] * 16 * x + self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * xi
-                    log.center_y = self.settings['TILE_SIZE'] * 16 * y + self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * yi
-                    log.pos = (xi, yi)
-                    log.type = data
-                    log.chunk = (x, y)
-                    self.scene.add_sprite("Loot", log)
+                    if chunk.field[yi][xi][0] in (1, 5): loot = LootSprite(self.loot_textures[data])
+                    else: loot = LootSprite()
+                    loot.set_hit_box(self.settings['LOOT_HIT_BOX'])
+                    loot.center_x = self.settings['TILE_SIZE'] * 16 * x + self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * xi
+                    loot.center_y = self.settings['TILE_SIZE'] * 16 * y + self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * yi
+                    loot.pos = (xi, yi)
+                    loot.type = data
+                    loot.chunk = (x, y)
+                    self.scene.add_sprite("Loot", loot)
 
     def on_update(self, delta_time):
         self.physics_engine.update()
@@ -290,7 +302,7 @@ class Roguelike(arcade.Window):
             self.score += 1
 
         self.scene.update_animation(
-            delta_time, ["Player", "Walls"]
+            delta_time, ["Player"]
         )
 
     def on_draw(self):

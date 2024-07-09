@@ -3,6 +3,11 @@ from pprint import pprint as print
 from primitieves import *
 
 class ChunkPaths():
+    settings = {
+        'LOOT_SPAWN_ATTEMPTS': 5,
+        'LOOT_SPAWN_CHANCE': 20,
+        'LOOT_TYPES_AMOUNT': 10,
+    }
     seed = -1
 
     def __init__(self, p, new_seed = None):
@@ -23,11 +28,11 @@ class ChunkPaths():
             for j in range(*ws):
                 self.field[i][j] = [3 if i not in ws1 and j not in ws1 else 4]
                 
-        for i in range(self.width // 2):
-            if self.hash_func(self.width, self.p.x, self.p.y, i) % 16 >= 13:
+        for i in range(ChunkPaths.settings["LOOT_SPAWN_ATTEMPTS"]):
+            if self.hash_func(self.width, self.p.x, self.p.y, i) % 100 >= ChunkPaths.settings["LOOT_SPAWN_CHANCE"]:
                 coord_x = int(self.hash_func(self.width, self.p.x, self.p.y) % (self.width - 2) + 9 - self.width // 2)
                 coord_y = int(self.hash_func(self.width, self.p.y, self.p.x) % (self.width - 2) + 9 - self.width // 2)
-                self.loot[(coord_x, coord_y)] = 0
+                self.loot[(coord_x, coord_y)] = self.hash_func(self.width, self.p.x, self.p.y) % ChunkPaths.settings["LOOT_TYPES_AMOUNT"]
 
     def addPaths(self):
         if self.paths['left'] != -1 and self.field[self.paths['left']][0][0] not in (1, 3, 5):
@@ -62,11 +67,16 @@ class ChunkPaths():
         return res
 
 class MapPaths:
+    settings = {
+
+    }
+
     def __init__(self, seed = -1):
         if seed < 0:
             seed = randint(1e6,1e10)
         self.seed = seed
         self.chunks = {}
+        ChunkPaths.settings = MapPaths.settings
         self.genArea(Vec(0,0))
     
     def __repr__(self):
