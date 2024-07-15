@@ -21,7 +21,7 @@ default_settings = {
     'LIGHTEN_WALL_TEXTURE': "Textures/concrete_yellow.png",
     'LOG_TEXTURE': "Textures/log.png",
     'LOOT_SPAWN_ATTEMPTS': 5,
-    'LOOT_SPAWN_CHANCE': 20,
+    'LOOT_SPAWN_CHANCE': 60,
     'LOOT_TYPES_AMOUNT': 10,
 }
 
@@ -80,11 +80,12 @@ class LootSprite(arcade.Sprite):
     settings = { # This data works if sth wrong!
         'LOOT_SCALING': 1
     }
-    def __init__(self, texture = None):
+    def __init__(self, texture = None, pickable = True):
         super().__init__(scale = LootSprite.settings['LOOT_SCALING'])
         if texture is not None: self.change_texture(texture)
         self.pos = None
         self.chunk = None
+        self.pickable = pickable
         self.type = None
     
     def change_texture(self, texture):
@@ -110,7 +111,6 @@ class Roguelike(arcade.Window):
         self.right_pressed = False
         self.up_pressed = False
         self.down_pressed = False
-        self.jump_needs_reset = False
         self.gui_camera = None
         self.score = None
 
@@ -133,11 +133,15 @@ class Roguelike(arcade.Window):
             arcade.load_texture('Textures/wood_axe.png'),
             arcade.load_texture('Textures/stick.png')
         ]
+        self.interface_textures = {
+            "selector": arcade.load_texture('Textures/frame.png')
+        }
 
         self.scene = arcade.Scene()
 
         self.scene.add_sprite_list("Floor", use_spatial_hash=True)
         self.scene.add_sprite_list("Loot", use_spatial_hash=True)
+        self.scene.add_sprite_list("Items", use_spatial_hash=True)
         self.scene.add_sprite_list("Player")
         self.scene.add_sprite_list("Walls", use_spatial_hash=True)
     
@@ -164,6 +168,15 @@ class Roguelike(arcade.Window):
 
         self.interface = arcade.Scene()
         self.interface.add_sprite_list("Icons", use_spatial_hash=True)
+        self.interface.add_sprite_list("Selector", use_spatial_hash=True)
+
+        self.selector_sprite = arcade.Sprite(scale=1.25)
+        self.selector_sprite.texture = self.interface_textures["selector"]
+        self.selector_sprite.center_x = self.settings["TILE_SIZE"] // 2 + 4
+        self.selector_sprite.center_y = self.settings["TILE_SIZE"] // 2 + 4
+        self.selector_sprite.slot = 0
+        self.interface.add_sprite("Selector", self.selector_sprite)
+
         self.labels = [None] * self.settings["LOOT_TYPES_AMOUNT"]
 
         self.camera = arcade.Camera(self.width, self.height)
@@ -194,6 +207,12 @@ class Roguelike(arcade.Window):
             self.left_pressed = True
         elif key == arcade.key.D or key == arcade.key.RIGHT:
             self.right_pressed = True
+        elif key == arcade.key.E:
+            
+            ...
+        elif 49 <= key <= 57: # numbers
+            self.selector_sprite.center_y = self.settings["TILE_SIZE"] // 2 + 4 + (self.settings["TILE_SIZE"] + 8) * (key - 49)
+            self.selector_sprite.slot = key - 49
         self.process_keychange()
     
     def on_key_release(self, key, modifiers):
