@@ -2,7 +2,7 @@ from random import randint
 from pprint import pprint as print 
 from primitieves import *
 
-class ChunkPaths():
+class ChunkPaths:
     settings = {
         'LOOT_SPAWN_ATTEMPTS': 5,
         'LOOT_SPAWN_CHANCE': 20,
@@ -32,7 +32,7 @@ class ChunkPaths():
             if self.hash_func(self.width, self.p.x, self.p.y, i) % 100 <= ChunkPaths.settings["LOOT_SPAWN_CHANCE"]:
                 coord_x = int(self.hash_func(self.width, self.p.x * (i + 1), self.p.y * (i + 1)) % (self.width - 2) + 9 - self.width // 2)
                 coord_y = int(self.hash_func(self.width, self.p.y * (i + 1), self.p.x * (i + 1)) % (self.width - 2) + 9 - self.width // 2)
-                self.loot[(coord_x, coord_y)] = self.hash_func(self.width, self.p.x * (i + 1), self.p.y * (i + 1)) % ChunkPaths.settings["LOOT_TYPES_AMOUNT"]
+                self.loot[(coord_x, coord_y)] = {'type': self.hash_func(self.width, self.p.x * (i + 1), self.p.y * (i + 1)) % ChunkPaths.settings["LOOT_TYPES_AMOUNT"], 'pickable': True}
 
     def addPaths(self):
         if self.paths['left'] != -1 and self.field[self.paths['left']][0][0] not in (1, 3, 5):
