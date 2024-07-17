@@ -23,6 +23,8 @@ default_settings = {
     'LOOT_SPAWN_ATTEMPTS': 5,
     'LOOT_SPAWN_CHANCE': 60,
     'LOOT_TYPES_AMOUNT': 10,
+    'ANIM_MOVEMENT_RANGE': 5,
+    'PICKABLES_RESCALING': 0.8,
 }
 
 def load_texture_pair(filename):
@@ -78,7 +80,9 @@ class TileSprite(arcade.Sprite):
 
 class LootSprite(arcade.Sprite):
     settings = { # This data works if sth wrong!
-        'LOOT_SCALING': 1
+        'LOOT_SCALING': 1,
+        'PICKABLES_RESCALING': 0.8,
+        'ANIM_MOVEMENT_RANGE': 10,
     }
     def __init__(self, texture = None, pickable = True):
         super().__init__(scale = LootSprite.settings['LOOT_SCALING'])
@@ -87,10 +91,24 @@ class LootSprite(arcade.Sprite):
         self.amount = 1
         self.chunk = None
         self.pickable = pickable
+        if pickable: self.scale *= LootSprite.settings['PICKABLES_RESCALING']
         self.type = None
+        self.offset = 0
+        self.moving_up = True
     
     def change_texture(self, texture):
         self.texture = texture
+
+    def update_animation(self, delta_time: float = 1 / 60):
+        if self.texture is not None:
+            if self.pickable:
+                if self.moving_up:
+                    if self.offset <= LootSprite.settings['ANIM_MOVEMENT_RANGE'] / 2: self.offset += 1
+                    else: self.moving_up = False
+                else:
+                    if self.offset >= -LootSprite.settings['ANIM_MOVEMENT_RANGE'] / 2: self.offset += -1
+                    else: self.moving_up = True
+                self.center_y += self.offset // abs(self.offset) if self.offset != 0 else 0
 
 class Roguelike(arcade.Window):
     def __init__(self, seed = -1, **new_settings):
@@ -321,7 +339,7 @@ class Roguelike(arcade.Window):
         self.pickup()
 
         self.scene.update_animation(
-            delta_time, ["Player"]
+            delta_time, ["Player", "Loot"]
         )
     
     def drop(self, all = False):
@@ -364,6 +382,8 @@ class Roguelike(arcade.Window):
                 loot.center_y = loot.type * 40 + 20
                 loot.pos = None
                 loot.chunk = None
+                loot.pickable = False
+                loot.scale = LootSprite.settings['LOOT_SCALING']
                 self.interface.add_sprite("Icons",loot)
                 self.score[loot.type] += loot.amount
                 self.labels[loot.type] = arcade.Text(str(loot.amount), 32, loot.type * 40 + 4, font_size=10)
