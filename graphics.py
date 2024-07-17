@@ -102,6 +102,8 @@ class LootSprite(arcade.Sprite):
         self.moving_up = True
         self.moving_right = True
         self.is_active = False
+
+        self.checked_anim = True
     
     def change_texture(self, texture):
         self.texture = texture
@@ -147,6 +149,7 @@ class Roguelike(arcade.Window):
         self.down_pressed = False
         self.gui_camera = None
         self.score = None
+        self.active_loot = None
 
     def setup(self):
         self.tile_textures = {
@@ -216,6 +219,7 @@ class Roguelike(arcade.Window):
         self.camera = arcade.Camera(self.width, self.height)
         self.gui_camera = arcade.Camera(self.width, self.height)
         self.score = [0] * self.settings["LOOT_TYPES_AMOUNT"]
+        self.active_loot = {}
     
     def process_keychange(self):
         if self.right_pressed and not self.left_pressed:
@@ -287,7 +291,7 @@ class Roguelike(arcade.Window):
                 else: cell.change_texture(self.tile_textures["lighten_wall"])
         
         for loot in self.scene["Loot"]:
-            if self.map.get(loot.chunk).field[loot.pos[0]][loot.pos[1]][0] == 5:
+            if self.map.get(loot.chunk).field[loot.pos[1]][loot.pos[0]][0] == 5:
                 loot.change_texture(self.loot_textures[loot.type])
 
 
@@ -354,6 +358,20 @@ class Roguelike(arcade.Window):
 
         self.pickup()
 
+        for cords, loot in list(self.active_loot.items()):
+            if self.map.get(loot.chunk).field[loot.pos[1]][loot.pos[0]][1].texture != self.tile_textures['lighten_floor']:
+                loot.is_active = False
+                del self.active_loot[cords]
+
+        footed_loot = arcade.check_for_collision_with_list(
+            self.player_sprite, self.scene["Items"] 
+        )
+        for loot in footed_loot:
+            if loot not in self.active_loot:
+                loot.is_active = True
+                x, y = (loot.pos[i] + val * 16 for i, val in enumerate(loot.chunk))
+                self.active_loot[(x, y)] = loot
+
         self.scene.update_animation(
             delta_time, ["Player", "Loot", "Items"]
         )
@@ -373,7 +391,6 @@ class Roguelike(arcade.Window):
                     loot.center_y = self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * posy
                     loot.pos = (posx % 16, posy % 16)
                     loot.type = slot
-                    loot.is_active = True
                     loot.chunk = tuple(chunk.p)
                     self.scene.add_sprite("Items", loot)
                     chunk.loot[(posx % 16, posy % 16)] = {'type': slot, 'pickable': False, 'sprite': loot}
@@ -391,6 +408,9 @@ class Roguelike(arcade.Window):
             self.player_sprite, self.scene[scene_name]
         )
         for loot in loot_hit_list:
+            if loot.is_active:
+                cords = tuple(loot.pos[i] + val * 16 for i, val in enumerate(loot.chunk))
+                del self.active_loot[cords]
             self.scene[scene_name].remove(loot)
             loot.remove_from_sprite_lists()
             del self.map.get(loot.chunk).loot[loot.pos]
