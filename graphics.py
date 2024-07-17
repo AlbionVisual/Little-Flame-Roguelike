@@ -86,15 +86,22 @@ class LootSprite(arcade.Sprite):
     }
     def __init__(self, texture = None, pickable = True):
         super().__init__(scale = LootSprite.settings['LOOT_SCALING'])
-        if texture is not None: self.change_texture(texture)
-        self.pos = None
+
         self.amount = 1
+
         self.chunk = None
+        self.pos = None
+
+        if texture is not None: self.change_texture(texture)
         self.pickable = pickable
         if pickable: self.scale *= LootSprite.settings['PICKABLES_RESCALING']
         self.type = None
-        self.offset = 0
+        
+        self.offset_y = 0
+        self.offset_x = 0
         self.moving_up = True
+        self.moving_right = True
+        self.is_active = False
     
     def change_texture(self, texture):
         self.texture = texture
@@ -103,12 +110,20 @@ class LootSprite(arcade.Sprite):
         if self.texture is not None:
             if self.pickable:
                 if self.moving_up:
-                    if self.offset <= LootSprite.settings['ANIM_MOVEMENT_RANGE'] / 2: self.offset += 1
+                    if self.offset_y <= LootSprite.settings['ANIM_MOVEMENT_RANGE'] / 2: self.offset_y += 1
                     else: self.moving_up = False
                 else:
-                    if self.offset >= -LootSprite.settings['ANIM_MOVEMENT_RANGE'] / 2: self.offset += -1
+                    if self.offset_y >= -LootSprite.settings['ANIM_MOVEMENT_RANGE'] / 2: self.offset_y += -1
                     else: self.moving_up = True
-                self.center_y += self.offset // abs(self.offset) if self.offset != 0 else 0
+                self.center_y += self.offset_y // abs(self.offset_y) if self.offset_y != 0 else 0
+            elif self.is_active:
+                if self.moving_right:
+                    if self.offset_x <= LootSprite.settings['ANIM_MOVEMENT_RANGE'] / 4: self.offset_x += 1
+                    else: self.moving_right = False
+                else:
+                    if self.offset_x >= -LootSprite.settings['ANIM_MOVEMENT_RANGE'] / 4: self.offset_x += -1
+                    else: self.moving_right = True
+                self.center_x += self.offset_x // abs(self.offset_x) if self.offset_x != 0 else 0
 
 class Roguelike(arcade.Window):
     def __init__(self, seed = -1, **new_settings):
@@ -339,7 +354,7 @@ class Roguelike(arcade.Window):
         self.pickup()
 
         self.scene.update_animation(
-            delta_time, ["Player", "Loot"]
+            delta_time, ["Player", "Loot", "Items"]
         )
     
     def drop(self, all = False):
@@ -357,6 +372,7 @@ class Roguelike(arcade.Window):
                     loot.center_y = self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * posy
                     loot.pos = (posx % 16, posy % 16)
                     loot.type = slot
+                    loot.is_active = True
                     loot.chunk = tuple(chunk.p)
                     self.scene.add_sprite("Items", loot)
                     chunk.loot[(posx % 16, posy % 16)] = {'type': slot, 'pickable': False, 'sprite': loot}
