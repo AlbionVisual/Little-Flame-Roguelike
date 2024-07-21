@@ -297,6 +297,87 @@ class Roguelike(arcade.Window):
 
         self.lighten = new_lights
 
+    def check_crafts(self):
+        templates = [
+            {
+                'res': 7,
+                'craft':[
+                    ['#'],
+                    ['#'],
+                    ['$']
+                ]
+            },
+            {
+                'res': 8,
+                'craft':[
+                    ['#', '#'],
+                    ['$', '#'],
+                    ['$', '*']
+                ]
+            },
+            {
+                'res': 0,
+                'craft':[
+                    ['*', '$', '#', '*'],
+                    ['#', '$', '#', '#'],
+                    ['#', '#', '#', '#'],
+                    ['*', '#', '#', '*']
+                ]
+            }
+        ]
+
+        min_x = int(self.player_sprite.center_x // self.settings['TILE_SIZE']) + 5
+        max_x = int(self.player_sprite.center_x // self.settings['TILE_SIZE']) - 5
+        min_y = int(self.player_sprite.center_y // self.settings['TILE_SIZE']) + 5
+        max_y = int(self.player_sprite.center_y // self.settings['TILE_SIZE']) - 5
+        field = [[None] * 10 for _ in range(10)]
+        start_x, start_y = max_x, max_y
+
+        def check_for_colision(craft, x, y):
+            nonlocal field
+            sym_types = {}
+            for i, line in enumerate(reversed(craft)):
+                if field[x - 1][y + i] != None: return False
+                if field[x + len(craft[0])][y + i] != None: return False
+                for j, patt in enumerate(line):
+                    if field[x + j][y - 1] != None: return False
+                    if field[x + j][y + len(craft)] != None: return False
+                    if patt == '*': 
+                        if field[x + j][y + i] != None: return False
+                    else:
+                        if field[x + j][y + i] == None: return False
+                        if patt in sym_types and field[x + j][y + i] != sym_types[patt]: return False
+                        else: 
+                            if field[x + j][y + i] in sym_types.values() and patt not in sym_types: return False
+                            else: sym_types[patt] = field[x + j][y + i]
+            return True
+
+        def bring_back(pattern):
+            print("calling bring back")
+            nonlocal min_y, min_x, max_x, max_y, field, start_y, start_x
+            for i in range(min_x, max_x - len(pattern[0]) + 1):
+                for j in range(min_y, max_y - len(pattern) + 1):
+                    if check_for_colision(pattern, i - start_x, j - start_y):
+                        return (start_x + i, start_y + j)
+            return False
+
+        for coord, loot in self.active_loot.items():
+            if coord[0] > max_x: max_x = coord[0]
+            if coord[0] < min_x: min_x = coord[0]
+            if coord[1] > max_y: max_y = coord[1]
+            if coord[1] < min_y: min_y = coord[1]
+            field[coord[0] - start_x][coord[1] - start_y] = loot.type
+        
+        max_x += 1
+        max_y += 1
+
+
+        for temp in templates:
+            res = bring_back(temp['craft'])
+            if res:
+                print(temp['res'], res)
+                return
+        
     def draw_map(self, chunk_x = None, chunk_y = None):
         if chunk_x == None: chunk_x = self.player_sprite.chunk[0]
         if chunk_y == None: chunk_y = self.player_sprite.chunk[1]
@@ -332,7 +413,10 @@ class Roguelike(arcade.Window):
                     loot.center_x = self.settings['TILE_SIZE'] * 16 * x + self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * xi
                     loot.center_y = self.settings['TILE_SIZE'] * 16 * y + self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * yi
                     loot.pos = (xi, yi)
-                    if not data['pickable']: loot.is_active = True
+                    xl, yl = (xi + tuple(chunk.p)[0] * 16, yi + tuple(chunk.p)[1] * 16)
+                    if not data['pickable'] and (xl, yl) in self.active_loot:
+                        self.active_loot[(xl, yl)] = loot
+                        loot.is_active = True
                     loot.type = data['type']
                     loot.chunk = (x, y)
                     chunk.loot[coord]['sprite'] = loot
@@ -367,10 +451,11 @@ class Roguelike(arcade.Window):
             self.player_sprite, self.scene["Items"] 
         )
         for loot in footed_loot:
-            if loot not in self.active_loot:
+            x, y = (loot.pos[i] + val * 16 for i, val in enumerate(loot.chunk))
+            if (x, y) not in self.active_loot:
                 loot.is_active = True
-                x, y = (loot.pos[i] + val * 16 for i, val in enumerate(loot.chunk))
                 self.active_loot[(x, y)] = loot
+                if len(self.active_loot) > 1: self.check_crafts()
 
         self.scene.update_animation(
             delta_time, ["Player", "Loot", "Items"]
@@ -411,6 +496,7 @@ class Roguelike(arcade.Window):
             if loot.is_active:
                 cords = tuple(loot.pos[i] + val * 16 for i, val in enumerate(loot.chunk))
                 del self.active_loot[cords]
+                if len(self.active_loot) > 1: self.check_crafts()
             self.scene[scene_name].remove(loot)
             loot.remove_from_sprite_lists()
             del self.map.get(loot.chunk).loot[loot.pos]
