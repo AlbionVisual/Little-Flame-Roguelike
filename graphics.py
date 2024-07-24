@@ -299,38 +299,41 @@ class Roguelike(arcade.Window):
 
     def check_crafts(self):
         templates = [
-            {
+            { # Sword
                 'res': 7,
                 'craft':[
                     ['#'],
                     ['#'],
                     ['$']
-                ]
+                ],
+                'amount': 1
             },
-            {
+            { # Axe
                 'res': 8,
                 'craft':[
                     ['#', '#'],
                     ['$', '#'],
                     ['$', '*']
-                ]
+                ],
+                'amount': 1
             },
-            {
+            { # Apple 
                 'res': 0,
                 'craft':[
                     ['*', '$', '#', '*'],
                     ['#', '$', '#', '#'],
                     ['#', '#', '#', '#'],
                     ['*', '#', '#', '*']
-                ]
+                ],
+                'amount': 12
             }
         ]
 
-        min_x = int(self.player_sprite.center_x // self.settings['TILE_SIZE']) + 5
-        max_x = int(self.player_sprite.center_x // self.settings['TILE_SIZE']) - 5
-        min_y = int(self.player_sprite.center_y // self.settings['TILE_SIZE']) + 5
-        max_y = int(self.player_sprite.center_y // self.settings['TILE_SIZE']) - 5
-        field = [[None] * 10 for _ in range(10)]
+        min_x = int(self.player_sprite.center_x // self.settings['TILE_SIZE']) + 7
+        max_x = int(self.player_sprite.center_x // self.settings['TILE_SIZE']) - 7
+        min_y = int(self.player_sprite.center_y // self.settings['TILE_SIZE']) + 7
+        max_y = int(self.player_sprite.center_y // self.settings['TILE_SIZE']) - 7
+        field = [[None] * 14 for _ in range(14)]
         start_x, start_y = max_x, max_y
 
         def check_for_colision(craft, x, y):
@@ -353,12 +356,12 @@ class Roguelike(arcade.Window):
             return True
 
         def bring_back(pattern):
-            print("calling bring back")
+            # print("calling bring back")
             nonlocal min_y, min_x, max_x, max_y, field, start_y, start_x
             for i in range(min_x, max_x - len(pattern[0]) + 1):
                 for j in range(min_y, max_y - len(pattern) + 1):
                     if check_for_colision(pattern, i - start_x, j - start_y):
-                        return (start_x + i, start_y + j)
+                        return (i, j)
             return False
 
         for coord, loot in self.active_loot.items():
@@ -371,11 +374,34 @@ class Roguelike(arcade.Window):
         max_x += 1
         max_y += 1
 
-
         for temp in templates:
             res = bring_back(temp['craft'])
             if res:
-                print(temp['res'], res)
+                for i in range(len(temp['craft'][0])):
+                    for j in range(len(temp['craft'])):
+                        cords = (res[0] + i, res[1] + j)
+                        if cords in self.active_loot:
+                            loot = self.active_loot[cords]
+                            del self.active_loot[cords]
+                            loot.remove_from_sprite_lists()
+                            del self.map.get(loot.chunk).loot[loot.pos]
+                
+                res = (res[0] + len(temp['craft'][0]) // 2, res[1] + len(temp['craft']) // 2)
+                x, y = (i // 16 for i in res)
+                xi, yi = (i % 16 for i in res)
+                chunk = self.map.get((x, y))
+                loot = LootSprite(self.loot_textures[temp['res']], pickable=True)
+                loot.set_hit_box(self.settings['LOOT_HIT_BOX'])
+                loot.center_x = self.settings['TILE_SIZE'] * 16 * x + self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * xi
+                loot.center_y = self.settings['TILE_SIZE'] * 16 * y + self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * yi
+                loot.pos = (xi, yi)
+                loot.type = temp['res']
+                loot.amount = temp['amount']
+                loot.chunk = (x, y)
+                chunk.loot[(xi, yi)] = {'type': temp['res'], 'sprite': loot}
+                self.scene.add_sprite("Loot", loot)
+
+                # print(temp['res'], res)
                 return
         
     def draw_map(self, chunk_x = None, chunk_y = None):
