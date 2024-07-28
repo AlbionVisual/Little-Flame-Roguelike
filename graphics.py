@@ -214,11 +214,11 @@ class Roguelike(arcade.Window):
         self.selector_sprite.slot = 0
         self.interface.add_sprite("Selector", self.selector_sprite)
 
-        self.labels = [None] * self.settings["LOOT_TYPES_AMOUNT"]
+        self.labels = []
 
         self.camera = arcade.Camera(self.width, self.height)
         self.gui_camera = arcade.Camera(self.width, self.height)
-        self.score = [0] * self.settings["LOOT_TYPES_AMOUNT"]
+        self.score = []
         self.active_loot = {}
     
     def process_keychange(self):
@@ -490,29 +490,49 @@ class Roguelike(arcade.Window):
     def drop(self, all = False):
         if not all:
             slot = self.selector_sprite.slot
-            if self.score[slot] > 0:
+            if len(self.score) > slot and self.score[slot] > 0:
                 posx, posy = (int(i // self.settings['TILE_SIZE']) for i in self.player_sprite.position)
                 chunk = self.map.get((posx // 16, posy // 16))
                 if (posx % 16, posy % 16) not in chunk.loot:
-                    texture = self.loot_textures[slot]
+                    texture = self.loot_textures[self.labels[slot]['type']]
                     loot = LootSprite(texture, pickable=False)
                     loot.set_hit_box(self.settings['LOOT_HIT_BOX'])
 
                     loot.center_x = self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * posx
                     loot.center_y = self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * posy
                     loot.pos = (posx % 16, posy % 16)
-                    loot.type = slot
+                    loot.type = self.labels[slot]['type']
                     loot.chunk = tuple(chunk.p)
                     self.scene.add_sprite("Items", loot)
-                    chunk.loot[(posx % 16, posy % 16)] = {'type': slot, 'pickable': False, 'sprite': loot}
+                    chunk.loot[(posx % 16, posy % 16)] = {'type': self.labels[slot]['type'], 'pickable': False, 'sprite': loot}
                     
-                    self.score[loot.type] -= 1
-                    self.labels[loot.type].text = str(self.score[loot.type])
-                elif chunk.loot[(posx % 16, posy % 16)]['type'] == slot:
+                    
+                    self.score[slot] -= 1
+                    if self.score[slot] == 0:
+                        del self.score[slot]
+                        self.labels[slot]['sprite'].remove_from_sprite_lists()
+                        del self.labels[slot]
+                        for i in range(len(self.labels)):
+                            self.labels[i]['sprite'].center_x = 20
+                            self.labels[i]['sprite'].center_y = 40 * i + 20
+                            self.labels[i]['label'].x = 32
+                            self.labels[i]['label'].y = 40 * i + 4
+                    else:
+                        self.labels[slot]['label'].text = str(self.score[slot])
+
+                elif chunk.loot[(posx % 16, posy % 16)]['type'] == self.labels[slot]['type']:
                     chunk.loot[(posx % 16, posy % 16)]['sprite'].amount += 1
-                    data = chunk.loot[(posx % 16, posy % 16)]['type']
-                    self.score[data] -= 1
-                    self.labels[data].text = str(self.score[data])
+                    self.score[slot] -= 1
+                    if self.score[slot] == 0:
+                        del self.score[slot]
+                        self.labels[slot]['sprite'].remove_from_sprite_lists()
+                        del self.labels[slot]
+                        for i in range(len(self.labels)):
+                            self.labels[i]['sprite'].center_x = 20
+                            self.labels[i]['sprite'].center_y = 40 * i + 20
+                            self.labels[i]['label'].x = 32
+                            self.labels[i]['label'].y = 40 * i + 4
+                    else: self.labels[slot]['label'].text = str(self.score[slot])
 
     def pickup(self, scene_name = 'Loot'):
         loot_hit_list = arcade.check_for_collision_with_list(
@@ -526,20 +546,22 @@ class Roguelike(arcade.Window):
             self.scene[scene_name].remove(loot)
             loot.remove_from_sprite_lists()
             del self.map.get(loot.chunk).loot[loot.pos]
-            if not self.score[loot.type]:
+            for i, item in enumerate(self.labels):
+                if item['type'] == loot.type:
+                    self.score[i] += loot.amount
+                    item['label'].text = str(self.score[i])
+                    del loot
+                    break
+            else:
                 loot.center_x = 20
-                loot.center_y = loot.type * 40 + 20
+                loot.center_y = len(self.score) * 40 + 20
                 loot.pos = None
                 loot.chunk = None
                 loot.pickable = False
                 loot.scale = LootSprite.settings['LOOT_SCALING']
                 self.interface.add_sprite("Icons",loot)
-                self.score[loot.type] += loot.amount
-                self.labels[loot.type] = arcade.Text(str(loot.amount), 32, loot.type * 40 + 4, font_size=10)
-            else:
-                self.score[loot.type] += loot.amount
-                self.labels[loot.type].text = str(self.score[loot.type])
-                del loot
+                self.score += [loot.amount]
+                self.labels += [{'type': loot.type, 'label': arcade.Text(str(loot.amount), 32, (len(self.score) - 1) * 40 + 4, font_size=10), 'sprite': loot}]
 
     def on_draw(self):
 
@@ -552,6 +574,6 @@ class Roguelike(arcade.Window):
         self.gui_camera.use()
 
         self.interface.draw()
-        for label in self.labels: 
-            if label:
-                label.draw()
+        for item in self.labels: 
+            if item['label']:
+                item['label'].draw()
