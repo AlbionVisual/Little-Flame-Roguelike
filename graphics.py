@@ -151,6 +151,8 @@ class Roguelike(arcade.Window):
         self.score = None
         self.active_loot = None
 
+        self.debug_show = False
+
     def setup(self):
         self.tile_textures = {
             "floor": arcade.load_texture(self.settings['FLOOR_TEXTURE']), 
@@ -252,6 +254,8 @@ class Roguelike(arcade.Window):
         elif 49 <= key <= 57: # numbers
             self.selector_sprite.center_y = self.settings["TILE_SIZE"] // 2 + 4 + (self.settings["TILE_SIZE"] + 8) * (key - 49)
             self.selector_sprite.slot = key - 49
+        elif key == arcade.key.F3:
+            self.debug_show = not self.debug_show
         self.process_keychange()
     
     def on_key_release(self, key, modifiers):
@@ -577,3 +581,23 @@ class Roguelike(arcade.Window):
         for item in self.labels: 
             if item['label']:
                 item['label'].draw()
+
+        if self.debug_show:
+            tile_size = self.settings['TILE_SIZE']
+            info = [
+                f'x, y: {self.player_sprite.position[0], self.player_sprite.position[1]}',
+                f'X, Y: {int(self.player_sprite.position[0] // tile_size), int(self.player_sprite.position[1] // tile_size)}',
+                f'Chunk x, y: {self.player_sprite.chunk}',
+                'Walls: ' + str(len(self.scene['Walls']))
+            ]
+            line_height = 25
+            start_x = 5
+            start_y = self.settings['SCREEN_HEIGHT'] - line_height
+            for line in info:
+                arcade.draw_text(line,
+                                start_x,
+                                start_y,
+                                arcade.color.WHITE,
+                                20,
+                                width=self.settings['SCREEN_WIDTH'])
+                start_y -= line_height
