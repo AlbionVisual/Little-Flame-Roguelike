@@ -1,5 +1,6 @@
 import arcade
-from field_gen_paths import MapPaths
+# from field_gen_paths import MapPaths
+from map import Map as MapPaths
 
 default_settings = {
     'SCREEN_WIDTH': 1000,
@@ -25,6 +26,7 @@ default_settings = {
     'LOOT_TYPES_AMOUNT': 10,
     'ANIM_MOVEMENT_RANGE': 5,
     'PICKABLES_RESCALING': 0.8,
+    'DISPLAY_RANGE': 3,
 }
 
 def load_texture_pair(filename):
@@ -251,6 +253,8 @@ class Roguelike(arcade.Window):
             self.pickup("Items")
         elif key == arcade.key.Q:
             self.drop()
+        elif key == arcade.key.F4:
+            self.map.debug_chunk(self.player_sprite.chunk)
         elif 49 <= key <= 57: # numbers
             self.selector_sprite.center_y = self.settings["TILE_SIZE"] // 2 + 4 + (self.settings["TILE_SIZE"] + 8) * (key - 49)
             self.selector_sprite.slot = key - 49
@@ -443,7 +447,7 @@ class Roguelike(arcade.Window):
                     loot.center_x = self.settings['TILE_SIZE'] * 16 * x + self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * xi
                     loot.center_y = self.settings['TILE_SIZE'] * 16 * y + self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * yi
                     loot.pos = (xi, yi)
-                    xl, yl = (xi + tuple(chunk.p)[0] * 16, yi + tuple(chunk.p)[1] * 16)
+                    xl, yl = (xi + tuple(chunk.pos)[0] * 16, yi + tuple(chunk.pos)[1] * 16)
                     if not data['pickable'] and (xl, yl) in self.active_loot:
                         self.active_loot[(xl, yl)] = loot
                         loot.is_active = True
@@ -585,10 +589,11 @@ class Roguelike(arcade.Window):
         if self.debug_show:
             tile_size = self.settings['TILE_SIZE']
             info = [
-                f'x, y: {self.player_sprite.position[0], self.player_sprite.position[1]}',
+                # f'x, y: {self.player_sprite.position[0], self.player_sprite.position[1]}',
                 f'X, Y: {int(self.player_sprite.position[0] // tile_size), int(self.player_sprite.position[1] // tile_size)}',
                 f'Chunk x, y: {self.player_sprite.chunk}',
-                'Walls: ' + str(len(self.scene['Walls']))
+                'Walls: ' + str(len(self.scene['Walls'])),
+                'Standing on:' + str(self.map.getCell(*[int(i/self.settings['TILE_SIZE']) for i in self.player_sprite.position]))
             ]
             line_height = 25
             start_x = 5

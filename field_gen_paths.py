@@ -1,8 +1,9 @@
-from random import randint
 from pprint import pprint as print 
 from primitieves import *
+from map import Map
+from chunk import Chunk # type: ignore
 
-class ChunkPaths:
+class ChunkPaths(Chunk):
     settings = {
         'LOOT_SPAWN_ATTEMPTS': 5,
         'LOOT_SPAWN_CHANCE': 20,
@@ -11,17 +12,14 @@ class ChunkPaths:
     seed = -1
 
     def __init__(self, p, new_seed = None):
+        self.pos = Vec(*tuple(p))
+        super().__init__(p, new_seed)
         if new_seed != None: ChunkPaths.seed = new_seed
-        self.p = Vec(*tuple(p))
-        self.field = [[[0] for _ in range(16)] for _ in range(16)]
         self.paths = { 'left': -1, 'top': -1, 'right': -1, 'bottom': -1 }
-        self.loot = {}
-        self.genered = True
         self.pathAdded = False
-        self.genField()
     
     def genField(self):
-        self.width = ((ChunkPaths.seed * (self.p.x + self.p.y) % 11 + 6) // 2) * 2 # Random staff
+        self.width = ((ChunkPaths.seed * (self.pos.x + self.pos.y) % 11 + 6) // 2) * 2 # Random staff
         ws = (8 - self.width // 2, 8 + self.width // 2)
         ws1 = (8 - self.width // 2, 8 + self.width // 2 - 1)
         for i in range(*ws):
@@ -29,10 +27,10 @@ class ChunkPaths:
                 self.field[i][j] = [3 if i not in ws1 and j not in ws1 else 4]
                 
         for i in range(ChunkPaths.settings["LOOT_SPAWN_ATTEMPTS"]):
-            if self.hash_func(self.width, self.p.x, self.p.y, i) % 100 <= ChunkPaths.settings["LOOT_SPAWN_CHANCE"]:
-                coord_x = int(self.hash_func(self.width, self.p.x * (i + 1), self.p.y * (i + 1)) % (self.width - 2) + 9 - self.width // 2)
-                coord_y = int(self.hash_func(self.width, self.p.y * (i + 1), self.p.x * (i + 1)) % (self.width - 2) + 9 - self.width // 2)
-                self.loot[(coord_x, coord_y)] = {'type': self.hash_func(self.width, self.p.x * (i + 1), self.p.y * (i + 1)) % ChunkPaths.settings["LOOT_TYPES_AMOUNT"], 'pickable': True}
+            if self.hash_func(self.width, self.pos.x, self.pos.y, i) % 100 <= ChunkPaths.settings["LOOT_SPAWN_CHANCE"]:
+                coord_x = int(self.hash_func(self.width, self.pos.x * (i + 1), self.pos.y * (i + 1)) % (self.width - 2) + 9 - self.width // 2)
+                coord_y = int(self.hash_func(self.width, self.pos.y * (i + 1), self.pos.x * (i + 1)) % (self.width - 2) + 9 - self.width // 2)
+                self.loot[(coord_x, coord_y)] = {'type': self.hash_func(self.width, self.pos.x * (i + 1), self.pos.y * (i + 1)) % ChunkPaths.settings["LOOT_TYPES_AMOUNT"], 'pickable': True}
 
     def addPaths(self):
         if self.paths['left'] != -1 and self.field[self.paths['left']][0][0] not in (1, 3, 5):
@@ -56,26 +54,10 @@ class ChunkPaths:
                 self.field[y][self.paths['bottom']] = [3]
                 self.field[y][self.paths['bottom'] + 1] = [4]
 
-    def __repr__(self, show = False):
-        if show: print(self.field)
-        return f'Chunk {self.p}'
-
-    def hash_func(self, *data):
-        res = 0
-        for x in data:
-            res = (res * 31 + x * ChunkPaths.seed) & 0xFFFFFFFF
-        return res
-
-class MapPaths:
-    settings = {
-
-    }
+class MapPaths(Map):
 
     def __init__(self, seed = -1):
-        if seed < 0:
-            seed = randint(1e6,1e10)
-        self.seed = seed
-        self.chunks = {}
+        super().__init__(seed)
         ChunkPaths.settings = MapPaths.settings
         self.genArea(Vec(0,0))
     
@@ -235,9 +217,3 @@ class MapPaths:
 
     def __contains__(self, p):
         return tuple(p) in self.chunks
-
-    def hash_func(self, *data):
-        res = 0
-        for x in data:
-            res = (res * 31 + x * self.seed) & 0xFFFFFFFF
-        return res
