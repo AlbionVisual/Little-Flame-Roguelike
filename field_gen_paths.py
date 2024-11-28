@@ -7,6 +7,7 @@ class ChunkPaths:
         'LOOT_SPAWN_ATTEMPTS': 5,
         'LOOT_SPAWN_CHANCE': 20,
         'LOOT_TYPES_AMOUNT': 10,
+        'ENEMIES_SPAWN_CHANCE': 10
     }
     seed = -1
 
@@ -16,6 +17,7 @@ class ChunkPaths:
         self.field = [[[0] for _ in range(16)] for _ in range(16)]
         self.paths = { 'left': -1, 'top': -1, 'right': -1, 'bottom': -1 }
         self.loot = {}
+        self.enemies = {}
         self.genered = True
         self.pathAdded = False
         self.genField()
@@ -33,6 +35,12 @@ class ChunkPaths:
                 coord_x = int(self.hash_func(self.width, self.p.x * (i + 1), self.p.y * (i + 1)) % (self.width - 2) + 9 - self.width // 2)
                 coord_y = int(self.hash_func(self.width, self.p.y * (i + 1), self.p.x * (i + 1)) % (self.width - 2) + 9 - self.width // 2)
                 self.loot[(coord_x, coord_y)] = {'type': self.hash_func(self.width, self.p.x * (i + 1), self.p.y * (i + 1)) % ChunkPaths.settings["LOOT_TYPES_AMOUNT"], 'pickable': True}
+        
+        if self.hash_func(self.width, self.p.x, self.p.y, i) % 100 <= ChunkPaths.settings["ENEMIES_SPAWN_CHANCE"]:
+            coord_x = int(self.hash_func(self.p.x, self.p.y, self.width) % (self.width - 2) + 9 - self.width // 2)
+            coord_y = int(self.hash_func(self.p.y, self.p.x, self.width) % (self.width - 2) + 9 - self.width // 2)
+            self.enemies[(coord_x, coord_y)] = {}
+            print(('Enemy gened:', coord_x, coord_y, self.p.x, self.p.y))
 
     def addPaths(self):
         if self.paths['left'] != -1 and self.field[self.paths['left']][0][0] not in (1, 3, 5):
@@ -76,7 +84,7 @@ class MapPaths:
             seed = randint(1e6,1e10)
         self.seed = seed
         self.chunks = {}
-        ChunkPaths.settings = MapPaths.settings
+        ChunkPaths.settings.update(MapPaths.settings)
         self.genArea(Vec(0,0))
     
     def __repr__(self):
