@@ -1,6 +1,5 @@
 import arcade
-# from field_gen_paths import MapPaths
-from map import Map as MapPaths
+from map import Map
 
 default_settings = {
     'SCREEN_WIDTH': 1000,
@@ -35,7 +34,7 @@ def load_texture_pair(filename):
     return [img, flipped_img]
 
 class PlayerCharacter(arcade.Sprite):
-    settings = { # This data works if sth wrong!
+    settings = { # This data works if sth's wrong!
         'RIGHT_FACING': 0,
         'LEFT_FACING': 1,
         'CHARACTER_SCALING': 1,
@@ -191,17 +190,18 @@ class Roguelike(arcade.Window):
         self.player_sprite.center_y = self.settings['TILE_SIZE'] * 7 + self.settings['TILE_SIZE'] // 2
         self.scene.add_sprite("Player", self.player_sprite)
 
-        MapPaths.settings = self.settings
-        self.map = MapPaths(self.seed)
+        Map.settings = self.settings
+        self.map = Map(self.seed)
         print('Seed: ', self.map.seed)
 
         self.gen_map()
         self.draw_map()
         self.lighten = (set(), set())
-        arg = self.map.genTreeLight(
+        self.change_lights(
+            self.map.genTreeLight(
                 (self.player_sprite.center_x // self.settings['TILE_SIZE'], self.player_sprite.center_y // self.settings['TILE_SIZE'])
+            )
         )
-        self.change_lights(arg)
 
         self.physics_engine = arcade.PhysicsEngineSimple(
             self.player_sprite, self.scene.get_sprite_list("Walls")
