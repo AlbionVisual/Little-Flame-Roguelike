@@ -19,24 +19,23 @@ class Chunk:
         self.enemies = {}
         self.genered = True
         self.genField()
-    
+
     def genField(self):
         for y in range(16):
             for x in range(16):
                 rand_num = self.hash_func(x, y, *self.pos)
                 self.field[x][y] = [3 if rand_num > 1/4*Chunk.hash_max else 0]
 
-        self.width = 16
         for i in range(Chunk.settings["LOOT_SPAWN_ATTEMPTS"]):
-            if self.hash_func(self.width, self.pos[0], self.pos[1], i)//100 % 100 <= Chunk.settings["LOOT_SPAWN_CHANCE"]:
-                coord_x = int(self.hash_func(self.width, self.pos[0] * (i + 1), self.pos[1] * (i + 1)) % 16)
-                coord_y = int(self.hash_func(self.width, self.pos[1] * (i + 1), self.pos[0] * (i + 1)) % 16)
+            if self.hash_func(self.pos[0], self.pos[1], i)//100 % 100 <= Chunk.settings["LOOT_SPAWN_CHANCE"]:
+                coord_x = int(self.hash_func(self.pos[0] * (i + 1), self.pos[1] * (i + 1)) % 16)
+                coord_y = int(self.hash_func(self.pos[1] * (i + 1), self.pos[0] * (i + 1)) % 16)
                 # print('New loot, cell: ', self.field[coord_x][coord_y][0])
-                if self.field[coord_x][coord_y][0] == 3: self.loot[(coord_x, coord_y)] = {'type': self.hash_func(self.width, self.pos[0] * (i + 1), self.pos[1] * (i + 1)) % Chunk.settings["LOOT_TYPES_AMOUNT"], 'pickable': True}
+                if self.field[coord_x][coord_y][0] == 3: self.loot[(coord_x, coord_y)] = {'type': self.hash_func(self.pos[0] * (i + 1), self.pos[1] * (i + 1)) % Chunk.settings["LOOT_TYPES_AMOUNT"], 'pickable': True}
 
-        if self.hash_func(self.width, self.pos[0], self.pos[1], i) % 100 <= Chunk.settings["ENEMIES_SPAWN_CHANCE"]:
-            coord_x = int(self.hash_func(self.pos[0], self.pos[1], self.width) % 16)
-            coord_y = int(self.hash_func(self.pos[1], self.pos[0], self.width) % 16)
+        if self.hash_func(self.pos[0], self.pos[1], i) % 100 <= Chunk.settings["ENEMIES_SPAWN_CHANCE"]:
+            coord_x = int(self.hash_func(self.pos[0], self.pos[1]) % 16)
+            coord_y = int(self.hash_func(self.pos[1], self.pos[0]) % 16)
             if self.field[coord_x][coord_y][0] == 3: self.enemies[(coord_x, coord_y)] = {}
             # print(('Enemy gened:', coord_x, coord_y, self.pos[0], self.pos[1]))
 

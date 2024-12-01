@@ -1,6 +1,16 @@
 from random import randint
 from chunk import Chunk # type: ignore
 
+map_types_relation = {
+    0: 'nothing',
+    1: 'floor',
+    2: 'wall',
+    3: 'inv_floor',
+    4: 'inv_wall',
+    5: 'lighten_floor',
+    6: 'lighten_wall'
+}
+
 class Map:
     settings = {
         'DISPLAY_RANGE': 3
@@ -79,7 +89,7 @@ class Map:
             if el[0] in (2, 4, 6):
                 walls.add(el[1])
                 el[0] = 6
-            if el[0] in (1, 3, 5): 
+            if el[0] in (1, 3, 5):
                 floor.add(el[1])
                 el[0] = 5
                 for vec in vecs:
@@ -94,7 +104,7 @@ class Map:
             el = queue.pop()
             checkCell(el)
         
-        return walls, floor
+        return floor, walls
 
     def getCell(self, *coords):
         if isinstance(coords[0], (tuple, list)): coords = coords[0]
