@@ -3,7 +3,7 @@ from map import *
 from sprites import *
 
 
-class Roguelike(arcade.Window):
+class RoguelikeView(arcade.View):
     def __init__(self, seed = -1, **new_settings):
         self.settings = default_settings
         for option in new_settings:
@@ -13,7 +13,8 @@ class Roguelike(arcade.Window):
         TileSprite.settings = self.settings
         LootSprite.settings = self.settings
         self.seed = seed
-        super().__init__(self.settings['SCREEN_WIDTH'], self.settings['SCREEN_HEIGHT'], self.settings['SCREEN_TITLE'])
+        super().__init__()
+        # super().__init__(self.settings['SCREEN_WIDTH'], self.settings['SCREEN_HEIGHT'], self.settings['SCREEN_TITLE'])
         arcade.set_background_color(arcade.csscolor.BLACK)
         self.scene = None
         self.player_sprite = None
@@ -35,6 +36,7 @@ class Roguelike(arcade.Window):
         self.debug_show = False
 
     def setup(self):
+        arcade.set_background_color(arcade.csscolor.BLACK)
 
         self.tile_textures = self.settings['TILE_TYPES']
         for _, tile in self.tile_textures.items():
@@ -111,8 +113,8 @@ class Roguelike(arcade.Window):
 
         self.labels = []
 
-        self.camera = arcade.Camera(self.width, self.height)
-        self.gui_camera = arcade.Camera(self.width, self.height)
+        self.camera = arcade.Camera(self.window.width, self.window.height)
+        self.gui_camera = arcade.Camera(self.window.width, self.window.height)
         self.score = []
         self.active_loot = {}
 
