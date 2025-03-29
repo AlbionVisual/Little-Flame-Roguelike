@@ -24,7 +24,18 @@ class Chunk:
         for y in range(16):
             for x in range(16):
                 rand_num = self.hash_func(x, y, *self.pos)
-                self.field[x][y] = [3 if rand_num > 1/4*Chunk.hash_max else 0]
+                self.field[x][y] = [3 if rand_num > 1/4*Chunk.hash_max else 4]
+
+        # for y in range(16):
+        #     for x in range(16):
+        #         if (x == 0 or y == 0 or x == 15 or y == 15): continue
+        #         is_empty = False
+        #         for yi in range(y-1,y+1):
+        #             for xi in range(x-1,x+1):
+        #                 if is_empty and self.field[xi][yi][0] == 3:
+        #                     is_empty = False
+        #         if not is_empty:
+        #             self.field[x][y][0] = 4
 
         for i in range(Chunk.settings["LOOT_SPAWN_ATTEMPTS"]):
             if self.hash_func(self.pos[0], self.pos[1], i)//100 % 100 <= Chunk.settings["LOOT_SPAWN_CHANCE"]:

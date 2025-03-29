@@ -1,4 +1,10 @@
 import arcade
+from PIL import Image
+
+def make_transparent_texture(width, height):
+    """Создает прозрачную текстуру."""
+    image = Image.new("RGBA", (int(width), int(height)), (0, 0, 0, 0))
+    return arcade.Texture(image)
 
 default_settings = {
     'SCREEN_WIDTH': 1000,
@@ -12,11 +18,11 @@ default_settings = {
     'RIGHT_FACING': 0,
     'LEFT_FACING': 1,
     'PLAYER_MOVEMENT_SPEED': 3,
-    'PLAYER_ANIM_FRAMES': 33,
+    'PLAYER_ANIM_FRAMES': 2,
     'ENEMY_ANIM_FRAMES': 8,
-    'TILE_HIT_BOX': ((-8.0, -8.0), (8.0, -8.0), (8.0, 8.0), (-8.0, 8.0)),
-    'LOOT_HIT_BOX': ((-8.0, -8.0), (8.0, -8.0), (8.0, 8.0), (-8.0, 8.0)),
-    'MOUSE_HIT_BOX': ((-2.0, 2.0), (1.0, 2.0), (1.0, -1.0), (-2.0, -1.0)),
+    'TILE_HIT_BOX': [(-8.0, -8.0), (8.0, -8.0), (8.0, 8.0), (-8.0, 8.0)],
+    'LOOT_HIT_BOX': [(-8.0, -8.0), (8.0, -8.0), (8.0, 8.0), (-8.0, 8.0)],
+    'MOUSE_HIT_BOX_SIZE': (3.0, 3.0),
     'LOOT_SPAWN_ATTEMPTS': 5,
     'LOOT_SPAWN_CHANCE': 60,
     'LOOT_TYPES_AMOUNT': 10,
@@ -35,11 +41,12 @@ default_settings = {
             "solidity": 1
         }
     },
+    "ALGORITHM_NAME": "MapPaths",
 }
 
 def load_texture_pair(filename):
-    flipped_img = arcade.load_texture(filename, flipped_horizontally=True)
     img = arcade.load_texture(filename)
+    flipped_img = img.flip_left_right()
     return [img, flipped_img]
 
 class EnemyCharacter(arcade.Sprite):
@@ -61,7 +68,6 @@ class EnemyCharacter(arcade.Sprite):
             load_texture_pair("Textures/swoop/swoop-{0:02d}.png".format(i)) for i in range(EnemyCharacter.settings['ENEMY_ANIM_FRAMES'])
         ]
         self.texture = self.walk_textures[0][self.character_face_direction]
-        self.hit_box = self.texture.hit_box_points
         self.visible = False
         self.alpha = 0
 
@@ -100,7 +106,6 @@ class PlayerCharacter(arcade.Sprite):
             load_texture_pair("Textures/flame/flame_{0:02d}.png".format(i)) for i in range(PlayerCharacter.settings['PLAYER_ANIM_FRAMES'])
         ]
         self.texture = self.walk_textures[0][self.character_face_direction]
-        self.hit_box = self.texture.hit_box_points
 
     def get_chunk(self):
         return (int(self.center_x // (16 * PlayerCharacter.settings['TILE_SIZE'])), int(self.center_y // (16 * PlayerCharacter.settings['TILE_SIZE'])))
@@ -127,6 +132,10 @@ class TileSprite(arcade.Sprite):
         if not isinstance(tile, str) or tile[:3] != 'inv':
             self.is_visible = True
             self.set_tile(tile)
+        else:
+            self.shape = TileSprite.settings["TILE_HIT_BOX"]
+            size = -TileSprite.settings["TILE_HIT_BOX"][0][0] +TileSprite.settings["TILE_HIT_BOX"][1][0]
+            self.texture = make_transparent_texture(size, size)
     
     def change_texture(self, light = 0):
         self.is_lighten = bool(light)
@@ -150,11 +159,21 @@ class LootSprite(arcade.Sprite):
         self.chunk = None
         self.pos = None
 
-        if texture is not None: self.change_texture(texture)
+        if texture is not None:
+            self.change_texture(texture)
+            self.shape = LootSprite.settings["LOOT_HIT_BOX"]
+        else:
+            size = -TileSprite.settings["LOOT_HIT_BOX"][0][0] +TileSprite.settings["LOOT_HIT_BOX"][1][0]
+            self.change_texture(make_transparent_texture(size, size))
+            self.shape = LootSprite.settings["LOOT_HIT_BOX"]
+            
         self.pickable = pickable
-        if pickable: self.scale *= LootSprite.settings['PICKABLES_RESCALING']
+        if pickable:
+            if self.scale.__class__ == tuple:
+                self.scale = tuple(item * LootSprite.settings['PICKABLES_RESCALING'] for item in self.scale)
+            else:
+                self.scale *= LootSprite.settings['PICKABLES_RESCALING']
         self.type = None
-        
         self.offset_y = 0
         self.offset_x = 0
         self.moving_up = True
@@ -164,9 +183,10 @@ class LootSprite(arcade.Sprite):
         self.checked_anim = True
     
     def is_in_inventory(self): return not bool(self.chunk)
-    
+
     def change_texture(self, texture):
         self.texture = texture
+        self.shown = True
 
     def update_animation(self, delta_time: float = 1 / 30):
         if self.texture is not None:

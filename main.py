@@ -1,5 +1,5 @@
 from graphics import RoguelikeView
-from main_menu import MainMenuView
+from main_menu import *
 import arcade
 import json
 
@@ -9,14 +9,13 @@ def main():
     """ Main function """
 
     window = arcade.Window(settings["SCREEN_WIDTH"], settings["SCREEN_HEIGHT"], settings["SCREEN_TITLE"])
-    game_view = RoguelikeView(**settings)
-    start_view = MainMenuView(game_view)
+    start_view = StartView(RoguelikeView, settings)
     window.show_view(start_view)
+    # game = RoguelikeView(-1, **settings)
+    # game.setup()
+    # window.show_view(game)
     arcade.run()
 
-# window = Roguelike(**settings)
-# window.setup()
-# arcade.run()
 
 if __name__ == "__main__":
     main()

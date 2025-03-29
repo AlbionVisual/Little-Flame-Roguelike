@@ -1,6 +1,7 @@
 import arcade
 from map import *
 from sprites import *
+from field_gen_paths import MapPaths
 
 
 class RoguelikeView(arcade.View):
@@ -73,11 +74,18 @@ class RoguelikeView(arcade.View):
         self.player_sprite.center_y = self.settings['TILE_SIZE'] * 7 + self.settings['TILE_SIZE'] // 2
         self.scene.add_sprite("Player", self.player_sprite)
 
-        self.mouse_sprite = arcade.Sprite()
-        self.mouse_sprite.set_hit_box(self.settings['MOUSE_HIT_BOX'])
+        self.mouse_sprite = arcade.SpriteSolidColor(
+            width=self.settings['MOUSE_HIT_BOX_SIZE'][0],
+            height=self.settings['MOUSE_HIT_BOX_SIZE'][1],
+            color=(0, 0, 0, 0)
+        )
+        self.mouse_sprite.center_x = 0
+        self.mouse_sprite.center_y = 0
 
-        Map.settings = self.settings
-        self.map = Map(self.seed)
+        
+        Algorithm_class = globals()[self.settings["ALGORITHM_NAME"]]
+        Algorithm_class.settings = self.settings
+        self.map = Algorithm_class(self.seed)
         print('Seed: ', self.map.seed)
 
         self.gen_map()
@@ -108,13 +116,13 @@ class RoguelikeView(arcade.View):
 
         self.taken_item_sprite = None
         self.dragging_item_sprite = LootSprite(pickable=False)
-        self.dragging_item_sprite.set_hit_box(self.settings['LOOT_HIT_BOX'])
+        # self.dragging_item_sprite.set_hit_box(self.settings['LOOT_HIT_BOX'])
         self.interface.add_sprite("Floatings", self.dragging_item_sprite)
 
         self.labels = []
 
-        self.camera = arcade.Camera(self.window.width, self.window.height)
-        self.gui_camera = arcade.Camera(self.window.width, self.window.height)
+        self.camera = arcade.Camera2D()
+        self.gui_camera = arcade.Camera2D()
         self.score = []
         self.active_loot = {}
 
@@ -153,6 +161,8 @@ class RoguelikeView(arcade.View):
             self.selector_sprite.slot = key - 49
         elif key == arcade.key.F3:
             self.debug_show = not self.debug_show
+        elif key == arcade.key.F5:
+            ... # I mean, here will be debugger? I guess...
         self.process_keychange()
     
     def on_key_release(self, key, mods):
@@ -252,10 +262,10 @@ class RoguelikeView(arcade.View):
             self.dragging_item_sprite.center_y = y
 
     def center_camera_to_player(self):
-        screen_center_x = self.player_sprite.center_x - self.camera.viewport_width / 2
-        screen_center_y = self.player_sprite.center_y - self.camera.viewport_height / 2
+        # screen_center_x = self.player_sprite.center_x - self.camera.viewport_width / 2
+        # screen_center_y = self.player_sprite.center_y - self.camera.viewport_height / 2
 
-        self.camera.move_to((screen_center_x, screen_center_y))
+        self.camera.position = self.player_sprite.position
 
     def gen_map(self):
         chunk_x, chunk_y = self.player_sprite.get_chunk()
@@ -390,7 +400,7 @@ class RoguelikeView(arcade.View):
                 xi, yi = (i % 16 for i in res)
                 chunk = self.map.get((x, y))
                 loot = LootSprite(self.loot_textures[temp['res']], pickable=True)
-                loot.set_hit_box(self.settings['LOOT_HIT_BOX'])
+                # loot.set_hit_box(self.settings['LOOT_HIT_BOX'])
                 loot.center_x = self.settings['TILE_SIZE'] * 16 * x + self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * xi
                 loot.center_y = self.settings['TILE_SIZE'] * 16 * y + self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * yi
                 loot.pos = (xi, yi)
@@ -421,7 +431,6 @@ class RoguelikeView(arcade.View):
                     xi, yi = coord
                     if chunk.field[yi][xi][0] in (1, 5): loot = LootSprite(self.loot_textures[data['type']], pickable=data['pickable'])
                     else: loot = LootSprite(pickable=data['pickable'])
-                    loot.set_hit_box(self.settings['LOOT_HIT_BOX'])
                     loot.center_x = self.settings['TILE_SIZE'] * 16 * x + self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * xi
                     loot.center_y = self.settings['TILE_SIZE'] * 16 * y + self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * yi
                     loot.pos = (xi, yi)
@@ -460,7 +469,8 @@ class RoguelikeView(arcade.View):
                                 print('err: lighten tile tried to generate!')
                                 continue
                             if tile_type[:3] == 'inv':                      # set hitbox for invisibles
-                                cell[1].set_hit_box(self.settings['TILE_HIT_BOX'])
+                                # cell[1].set_hit_box(self.settings['TILE_HIT_BOX'])
+                                ...
                             else:
                                 cell[1].change_texture(light = 0)           # or set texture for visibles
                             if tile_type[-4:] == 'wall':
@@ -475,7 +485,7 @@ class RoguelikeView(arcade.View):
                                     self.scene.add_sprite("Floor", cell[1])
 
         for x, y in self.drawn_chunks - drawn_chunks:                       # for every far chunk
-            chunk = self.map.get(x, y)
+            chunk = self.map.get((x, y))
             for i, line in enumerate(chunk.field):
                 for j, cell in enumerate(line):
                     if len(cell) == 2:                                      # for every cell with tile sprite
@@ -529,7 +539,7 @@ class RoguelikeView(arcade.View):
             if (posx % 16, posy % 16) not in chunk.loot:
                 texture = self.loot_textures[self.labels[slot]['type']]
                 loot = LootSprite(texture, pickable=False)
-                loot.set_hit_box(self.settings['LOOT_HIT_BOX'])
+                # loot.set_hit_box(self.settings['LOOT_HIT_BOX'])
 
                 loot.center_x = self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * posx
                 loot.center_y = self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * posy

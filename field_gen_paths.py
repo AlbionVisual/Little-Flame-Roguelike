@@ -1,3 +1,4 @@
+import hashlib
 from pprint import pprint as print 
 from primitieves import *
 from map import Map
@@ -65,7 +66,7 @@ class ChunkPaths(Chunk):
                 self.field[y][self.paths['bottom'] + 1] = [4]
 
 class MapPaths(Map):
-
+    hash_max = 4_294_967_295
     def __init__(self, seed = -1):
         super().__init__(seed)
         ChunkPaths.settings.update(MapPaths.settings)
@@ -227,3 +228,10 @@ class MapPaths(Map):
 
     def __contains__(self, p):
         return tuple(p) in self.chunks
+    
+    def hash_func(*args):
+        input_data = str(Chunk.seed).encode('utf-8') + b''.join(str(arg).encode('utf-8') for arg in args)
+        hash_object = hashlib.sha256(input_data)
+        hash_bytes = hash_object.digest()
+        random_number = int.from_bytes(hash_bytes[:4], byteorder='big')
+        return random_number
