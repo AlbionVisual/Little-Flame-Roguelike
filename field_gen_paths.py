@@ -13,13 +13,10 @@ class ChunkPaths(Chunk):
     }
     seed = -1
 
-    def __init__(self, p, new_seed = None):
+    def __init__(self, p):
         self.pos = Vec(*tuple(p))
-        super().__init__(p, new_seed)
-        if new_seed != None: ChunkPaths.seed = new_seed
+        super().__init__(p)
         self.paths = { 'left': -1, 'top': -1, 'right': -1, 'bottom': -1 }
-        self.loot = {}
-        self.enemies = {}
         self.genered = True
         self.pathAdded = False
     
@@ -41,7 +38,7 @@ class ChunkPaths(Chunk):
             coord_x = int(self.hash_func(self.pos.x, self.pos.y, self.width) % (self.width - 2) + 9 - self.width // 2)
             coord_y = int(self.hash_func(self.pos.y, self.pos.x, self.width) % (self.width - 2) + 9 - self.width // 2)
             self.enemies[(coord_x, coord_y)] = {}
-            print(('Enemy gened:', coord_x, coord_y, self.pos.x, self.pos.y))
+            # print(('Enemy gened:', coord_x, coord_y, self.pos.x, self.pos.y))
 
     def addPaths(self):
         if self.paths['left'] != -1 and self.field[self.paths['left']][0][0] not in (1, 3, 5):
@@ -77,7 +74,7 @@ class MapPaths(Map):
         return f'Seed: {self.seed}, genered: {sep.join(str(i) for i in self.chunks.keys())}'
     
     def genChunk(self, p):
-        self.chunks[tuple(p)] = ChunkPaths(p, self.seed)
+        self.chunks[tuple(p)] = ChunkPaths(p)
     
     def genLight(self, p, f, f_args, strength = 5): # simpliest circle
         p = Vec(*p)
@@ -138,7 +135,7 @@ class MapPaths(Map):
             return self.chunks[(p.x, p.y)]
         else: return self.chunks[(p[0],p[1])]
     
-    def genArea(self, p):
+    def genArea(self, p, start = None):
         if not isinstance(p, Vec): p = Vec(*p)
         left = Vec(-1,0)
         right = Vec(1,0)
@@ -203,6 +200,18 @@ class MapPaths(Map):
                 self.get(p+vec).addPaths()
             chunk.addPaths()
             chunk.pathAdded = True
+        
+        p += up
+
+        R = self.settings["DISPLAY_RANGE"]
+        if start == None:
+            start = p
+            for i in range(int(start.x - R), int(start.x + R + 1)):
+                for j in range(int(start.y - R), int(start.y + R + 1)):
+                    pi = start + right * i + up * j
+                    if (pi + start*(-1)).dist() > R**2: continue
+                    self.genArea(pi, start)
+                    # print()
 
     def setPath(self, p1, vec):
         p2 = p1 + vec

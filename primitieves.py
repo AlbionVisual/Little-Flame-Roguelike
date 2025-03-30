@@ -3,6 +3,9 @@ class Vec():
         self.x = x1
         self.y = y1
     
+    def dist(self):
+        return (self.x**2 + self.y**2)**(1/2)
+
     def __repr__(self):
         return f'({self.x}, {self.y})'
     

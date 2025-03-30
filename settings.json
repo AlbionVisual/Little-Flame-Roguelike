@@ -2,5 +2,5 @@
     "SCREEN_WIDTH": 1000,
     "SCREEN_HEIGHT": 600,
     "SCREEN_TITLE": "Little Flame",
-    "ALGORITHM_NAME": "Map"
+    "ALGORITHM_NAME": "MapPaths"
 }

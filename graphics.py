@@ -423,8 +423,8 @@ class RoguelikeView(arcade.View):
 
         R = self.settings['DISPLAY_RANGE']
         drawn_chunks = set()
-        for x in range(chunk_x - R, chunk_x + R + 1):
-            for y in range(chunk_y - R, chunk_y + R + 1):
+        for x in range(int(chunk_x - R), int(chunk_x + R + 1)):
+            for y in range(int(chunk_y - R), int(chunk_y + R + 1)):
 
                 chunk = self.map.get((x, y))
                 for coord, data in chunk.loot.items():                      # for every loot in chunk
@@ -638,8 +638,8 @@ class RoguelikeView(arcade.View):
                 'In chunk x, y: ' + str(int(self.player_sprite.position[0] // tile_size) % 16) + ' ' + str(int(self.player_sprite.position[1] // tile_size) % 16),
                 f'Chunk x, y: {self.player_sprite.chunk}',
                 'Walls: ' + str(len(self.scene['Walls'])),
-                'Floors: ' + str(len(self.scene['Floor'])),
-                'Standing on: ' + str(self.map.getCell(*[int(i/self.settings['TILE_SIZE']) for i in self.player_sprite.position]))
+                'Floors: ' + str(len(self.scene['Floor']))
+                # 'Standing on: ' + str(self.map.getCell(*[int(i/self.settings['TILE_SIZE']) for i in self.player_sprite.position]))
             ]
             line_height = 25
             start_x = 5
