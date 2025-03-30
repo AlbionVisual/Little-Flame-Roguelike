@@ -15,7 +15,7 @@ class Map:
     settings = {
         'DISPLAY_RANGE': 3
     }
-    def __init__(self, seed):
+    def __init__(self, seed = -1):
         if seed < 0:
             def isPrime(n):
                 for i in range(2, int(n**(1/2) + 1)):
@@ -28,6 +28,7 @@ class Map:
 
         self.seed = seed
         Chunk.seed = seed
+        Chunk.settings.update(Map.settings)
         self.chunks = {}
     
     def genArea(self, coords):

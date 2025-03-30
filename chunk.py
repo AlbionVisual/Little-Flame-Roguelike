@@ -6,6 +6,12 @@ class Chunk:
         'LOOT_SPAWN_CHANCE': 20,
         'LOOT_TYPES_AMOUNT': 10,
         'ENEMIES_SPAWN_CHANCE': 10,
+        'BORDERS': {
+            'LEFT': -1,
+            'RIGHT': -1,
+            'UP': -1,
+            'DOWN': -1
+        },
     }
 
     seed = -1
@@ -18,7 +24,10 @@ class Chunk:
         self.loot = {}
         self.enemies = {}
         self.genered = True
+
         self.genField()
+
+        self.check_borders()
 
     def genField(self):
         for y in range(16):
@@ -49,6 +58,20 @@ class Chunk:
             coord_y = int(self.hash_func(self.pos[1], self.pos[0]) % 16)
             if self.field[coord_x][coord_y][0] == 3: self.enemies[(coord_x, coord_y)] = {}
             # print(('Enemy gened:', coord_x, coord_y, self.pos[0], self.pos[1]))
+
+    def check_borders(self):
+        if self.settings['BORDERS']['RIGHT'] != -1 and self.pos[0] > self.settings['BORDERS']['RIGHT']:
+            for i in range(16):
+                self.field[i][15] = [4]
+        if self.settings['BORDERS']['LEFT'] != -1 and self.pos[0] < -self.settings['BORDERS']['LEFT']:
+            for i in range(16):
+                self.field[i][0] = [4]
+        if self.settings['BORDERS']['UP'] != -1 and self.pos[1] > self.settings['BORDERS']['UP']:
+            for i in range(16):
+                self.field[15][i] = [4]
+        if self.settings['BORDERS']['DOWN'] != -1 and self.pos[1] < -self.settings['BORDERS']['DOWN']:
+            for i in range(16):
+                self.field[0][i] = [4]
 
     def __repr__(self, show = False):
         if show: print(self.field)

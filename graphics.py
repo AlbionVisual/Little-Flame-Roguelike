@@ -84,7 +84,7 @@ class RoguelikeView(arcade.View):
 
         
         Algorithm_class = globals()[self.settings["ALGORITHM_NAME"]]
-        Algorithm_class.settings = self.settings
+        Map.settings = self.settings
         self.map = Algorithm_class(self.seed)
         print('Seed: ', self.map.seed)
 

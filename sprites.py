@@ -42,6 +42,12 @@ default_settings = {
         }
     },
     "ALGORITHM_NAME": "MapPaths",
+    "BORDERS": {
+        "LEFT": -1,
+        "RIGHT": -1,
+        "UP": -1,
+        "DOWN": -1
+    },
 }
 
 def load_texture_pair(filename):

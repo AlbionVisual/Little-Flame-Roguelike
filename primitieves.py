@@ -27,3 +27,7 @@ class Vec():
             self.current = 'y'
             return self.y
         raise StopIteration
+    
+    def __getitem__(self, key):
+        if key == 0: return self.x
+        else: return self.y

@@ -5,12 +5,6 @@ from map import Map
 from chunk import Chunk # type: ignore
 
 class ChunkPaths(Chunk):
-    settings = {
-        'LOOT_SPAWN_ATTEMPTS': 5,
-        'LOOT_SPAWN_CHANCE': 20,
-        'LOOT_TYPES_AMOUNT': 10,
-        'ENEMIES_SPAWN_CHANCE': 10
-    }
     seed = -1
 
     def __init__(self, p):
@@ -61,12 +55,14 @@ class ChunkPaths(Chunk):
                 self.field[y][self.paths['bottom'] - 1] = [4]
                 self.field[y][self.paths['bottom']] = [3]
                 self.field[y][self.paths['bottom'] + 1] = [4]
+        
+        self.check_borders()
 
 class MapPaths(Map):
     hash_max = 4_294_967_295
     def __init__(self, seed = -1):
         super().__init__(seed)
-        ChunkPaths.settings.update(MapPaths.settings)
+        # ChunkPaths.settings.update(MapPaths.settings)
         self.genArea(Vec(0,0))
     
     def __repr__(self):
