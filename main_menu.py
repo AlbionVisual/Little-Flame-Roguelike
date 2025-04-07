@@ -242,13 +242,20 @@ class PlayMenu(SubMenu):
 
         @game_mode_1_button.event("on_click")
         def on_click_game_mode_1(event):
-            ...
+            self.game_view = parent.game_view_class(**parent.settings)
             super(PlayMenu, self).on_click_back_button()
+            parent.window.show_view(self.game_view)
+            self.game_view.setup()
 
 
         @game_mode_2_button.event("on_click")
         def on_click_game_mode_2(event):
-            # self.manager.disable()
+            parent.settings["BORDERS"] = {
+                'LEFT': -1,
+                'RIGHT': -1,
+                'UP': -1,
+                'DOWN': -1
+            }
             self.game_view = parent.game_view_class(**parent.settings)
             super(PlayMenu, self).on_click_back_button()
             parent.window.show_view(self.game_view)
