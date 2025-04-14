@@ -2,6 +2,8 @@ import arcade
 from map import *
 from sprites import *
 from field_gen_paths import MapPaths
+from puase_menu import PauseMenuView
+from PIL import ImageFilter
 
 
 class RoguelikeView(arcade.View):
@@ -154,6 +156,12 @@ class RoguelikeView(arcade.View):
             self.pickup("Items")
         elif key == arcade.key.Q:
             self.drop()
+        elif key == arcade.key.ESCAPE:
+            blurred_image = arcade.get_image().filter(ImageFilter.GaussianBlur(radius=4))
+            screenshot = arcade.Texture(blurred_image)
+            menu_view = PauseMenuView(self, screenshot)
+            self.window.show_view(menu_view)
+
         elif key == arcade.key.F4:
             self.map.debug_chunk(self.player_sprite.chunk)
         elif 49 <= key <= 57: # numbers
@@ -288,7 +296,7 @@ class RoguelikeView(arcade.View):
                 loot.change_texture(self.loot_textures[loot.type])
         
         for enemy in self.scene["Enemies"]:
-            if map_types_relation[self.map.get(loot.chunk).field[loot.pos[1]][loot.pos[0]][0]] == 'lighten_floor':
+            if map_types_relation[self.map.get(enemy.chunk).field[enemy.pos[1]][enemy.pos[0]][0]] == 'lighten_floor':
                 enemy.visible = True
 
 

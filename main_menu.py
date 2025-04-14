@@ -1,7 +1,6 @@
 import arcade
 import arcade.gui
 
-
 class StartView(arcade.View):
 
     def __init__(self, game_view_class, settings):
@@ -34,7 +33,7 @@ class StartView(arcade.View):
 
     def on_show_view(self):
         """ This is run once when we switch to this view """
-        arcade.set_background_color(arcade.color.DARK_BLUE_GRAY)
+        arcade.set_background_color(arcade.color.DIM_GRAY)
         self.manager.enable()
 
     def on_hide_view(self):
@@ -46,96 +45,6 @@ class StartView(arcade.View):
         # Clear the screen
         self.clear()
 
-        self.manager.draw()
-
-class MenuView(arcade.View):
-    """Main menu view class."""
-
-    def __init__(self, main_view):
-        super().__init__()
-
-        self.manager = arcade.gui.UIManager()
-
-        resume_button = arcade.gui.UIFlatButton(text="Resume", width=150)
-        start_new_game_button = arcade.gui.UIFlatButton(text="Start New Game", width=150)
-        volume_button = arcade.gui.UIFlatButton(text="Volume", width=150)
-        options_button = arcade.gui.UIFlatButton(text="Options", width=150)
-
-        exit_button = arcade.gui.UIFlatButton(text="Exit", width=320)
-
-        self.grid = arcade.gui.UIGridLayout(
-            column_count=2, row_count=3, horizontal_spacing=20, vertical_spacing=20
-        )
-
-        # Adding the buttons to the layout.
-        self.grid.add(resume_button, column=0, row=0)
-        self.grid.add(start_new_game_button, column=1, row=0)
-        self.grid.add(volume_button, column=0, row=1)
-        self.grid.add(options_button, column=1, row=1)
-        self.grid.add(exit_button, column=0, row=2, column_span=2)
-
-        self.anchor = self.manager.add(arcade.gui.UIAnchorLayout())
-
-        self.anchor.add(
-            anchor_x="center_x",
-            anchor_y="center_y",
-            child=self.grid,
-        )
-
-        self.main_view = main_view
-
-        
-        @resume_button.event("on_click")
-        def on_click_resume_button(event):
-            # Pass already created view because we are resuming.
-            self.window.show_view(self.main_view.game_view)
-
-        @start_new_game_button.event("on_click")
-        def on_click_start_new_game_button(event):
-            # Create a new view because we are starting a new game.
-            
-            self.window.show_view(self.main_view.game_view)
-
-        @exit_button.event("on_click")
-        def on_click_exit_button(event):
-            arcade.exit()
-
-        @volume_button.event("on_click")
-        def on_click_volume_button(event):
-            volume_menu = SubMenu(
-                "Volume Menu",
-                "How do you like your volume?",
-                ["Play: Rock", "Play: Punk", "Play: Pop"],
-            )
-            self.manager.add(volume_menu, layer=1)
-
-        @options_button.event("on_click")
-        def on_click_options_button(event):
-            options_menu = SubMenu(
-                "Funny Menu",
-                "Too much fun here",
-                ["Make Fun", "Enjoy Fun", "Like Fun"],
-            )
-            self.manager.add(options_menu, layer=1)
-
-
-    def on_hide_view(self):
-        # Disable the UIManager when the view is hidden.
-        self.manager.disable()
-
-    def on_show_view(self):
-        """This is run once when we switch to this view"""
-
-        # Makes the background darker
-        arcade.set_background_color([rgb - 50 for rgb in arcade.color.DARK_BLUE_GRAY])
-
-        self.manager.enable()
-
-    def on_draw(self):
-        """Render the screen."""
-
-        # Clear the screen
-        self.clear()
         self.manager.draw()
 
 class SubMenu(arcade.gui.UIMouseFilterMixin, arcade.gui.UIAnchorLayout):
@@ -151,17 +60,7 @@ class SubMenu(arcade.gui.UIMouseFilterMixin, arcade.gui.UIAnchorLayout):
         frame = self.add(arcade.gui.UIAnchorLayout(width=300, height=400, size_hint=None))
         frame.with_padding(all=20)
 
-        frame.with_background(
-            texture=arcade.gui.NinePatchTexture(
-                left=7,
-                right=7,
-                bottom=7,
-                top=7,
-                texture=arcade.load_texture(
-                    ":resources:gui_basic_assets/window/dark_blue_gray_panel.png"
-                ),
-            )
-        )
+        frame.with_background(color=arcade.color.GRAY)
 
         back_button = arcade.gui.UIFlatButton(text="Back", width=250)
         back_button.on_click = self.on_click_back_button
@@ -188,10 +87,10 @@ class SubMenu(arcade.gui.UIMouseFilterMixin, arcade.gui.UIAnchorLayout):
 class OptionsMenu(SubMenu):
     def __init__(self, parent):
 
-        left_input = arcade.gui.UIInputText(text=str(parent.settings.get('BORDERS', {'LEFT':-1})['LEFT']), width=50)
-        up_input = arcade.gui.UIInputText(text=str(parent.settings.get('BORDERS', {'UP':-1})['UP']), width=50)
-        right_input = arcade.gui.UIInputText(text=str(parent.settings.get('BORDERS', {'RIGHT':-1})['RIGHT']), width=50)
-        down_input = arcade.gui.UIInputText(text=str(parent.settings.get('BORDERS', {'DOWN':-1})['DOWN']), width=50)
+        left_input = arcade.gui.UIInputText(text=str(parent.settings.get('BORDERS', {'LEFT':1})['LEFT']), width=50)
+        up_input = arcade.gui.UIInputText(text=str(parent.settings.get('BORDERS', {'UP':1})['UP']), width=50)
+        right_input = arcade.gui.UIInputText(text=str(parent.settings.get('BORDERS', {'RIGHT':1})['RIGHT']), width=50)
+        down_input = arcade.gui.UIInputText(text=str(parent.settings.get('BORDERS', {'DOWN':1})['DOWN']), width=50)
 
         grid_label = arcade.gui.UILabel(text="Select border distances")
         grid = arcade.gui.UIGridLayout(
