@@ -1,8 +1,10 @@
 import arcade
+import arcade.clock
 from map import *
 from sprites import *
 from field_gen_paths import MapPaths
 from puase_menu import PauseMenuView
+from game_over_view import GameOverView
 from PIL import ImageFilter
 
 
@@ -40,6 +42,16 @@ class RoguelikeView(arcade.View):
 
     def setup(self):
         arcade.set_background_color(arcade.csscolor.BLACK)
+
+        if self.settings["GAME_TYPE"] == "INFINITE":
+            self.settings["BORDERS"] = {
+                'LEFT': -1,
+                'RIGHT': -1,
+                'UP': -1,
+                'DOWN': -1
+            }
+        elif self.settings["GAME_TYPE"] == "RUN":
+            ...
 
         self.tile_textures = self.settings['TILE_TYPES']
         for _, tile in self.tile_textures.items():
@@ -106,7 +118,7 @@ class RoguelikeView(arcade.View):
 
         self.interface = arcade.Scene()
         self.interface.add_sprite_list("Icons", use_spatial_hash=True)
-        self.interface.add_sprite_list("Selector", use_spatial_hash=True)
+        self.interface.add_sprite_list("Indicators", use_spatial_hash=True)
         self.interface.add_sprite_list("Floatings")
 
         self.selector_sprite = arcade.Sprite(scale=1.25)
@@ -114,12 +126,22 @@ class RoguelikeView(arcade.View):
         self.selector_sprite.center_x = self.settings["TILE_SIZE"] // 2 + 4
         self.selector_sprite.center_y = self.settings["TILE_SIZE"] // 2 + 4
         self.selector_sprite.slot = 0
-        self.interface.add_sprite("Selector", self.selector_sprite)
+        self.interface.add_sprite("Indicators", self.selector_sprite)
 
         self.taken_item_sprite = None
         self.dragging_item_sprite = LootSprite(pickable=False)
-        # self.dragging_item_sprite.set_hit_box(self.settings['LOOT_HIT_BOX'])
         self.interface.add_sprite("Floatings", self.dragging_item_sprite)
+
+        self.timer_value: float = 0.0
+        self.timer_text = arcade.Text(
+            text="00:00:00",
+            x=self.settings["SCREEN_WIDTH"]-10,
+            y=self.settings["SCREEN_HEIGHT"]-10,
+            color=arcade.color.WHITE,
+            font_size=12,
+            anchor_x="right",
+            anchor_y="top"
+        )
 
         self.labels = []
 
@@ -507,6 +529,8 @@ class RoguelikeView(arcade.View):
 
     def on_update(self, delta_time):
         self.physics_engine.update()
+
+        # Updating camera and lights
         self.center_camera_to_player()
         if self.player_sprite.get_chunk() != self.player_sprite.chunk:
             self.gen_map()
@@ -517,13 +541,32 @@ class RoguelikeView(arcade.View):
         )
         if arg != self.lighten: self.change_lights(arg)
 
+        # Updating things for Run gamemode
+        if self.settings["GAME_TYPE"] == "RUN":
+            self.player_sprite.health -= delta_time / self.settings["HEALTH_LOSS_COFF"]
+            if self.player_sprite.health < 0:
+                self.player_sprite.health = 0
+                blurred_image = arcade.get_image().filter(ImageFilter.GaussianBlur(radius=4))
+                screenshot = arcade.Texture(blurred_image)
+                game_over_view = GameOverView(self, self.timer_text.text, screenshot)
+                self.window.show_view(game_over_view)
+            # Recalculating timer
+            self.timer_value = self.timer_value + delta_time
+            minutes = int(self.timer_value) // 60
+            seconds = int(self.timer_value) % 60
+            seconds_100s = int((self.timer_value - 60 * minutes - seconds) * 100)
+            self.timer_text.text = f"{minutes:02d}:{seconds:02d}:{seconds_100s:02d}"
+        
+        # Picking up genered items if in touch
         self.pickup()
 
+        # Checking wether active loot still active (not in shadow)
         for cords, loot in list(self.active_loot.items()):
             if not self.map.get(loot.chunk).field[loot.pos[1]][loot.pos[0]][1].is_lighten:
                 loot.is_active = False
                 del self.active_loot[cords]
 
+        # Add new active loot when player went through it
         footed_loot = arcade.check_for_collision_with_list(
             self.player_sprite, self.scene["Items"] 
         )
@@ -533,6 +576,7 @@ class RoguelikeView(arcade.View):
                 loot.is_active = True
                 self.active_loot[(x, y)] = loot
                 if len(self.active_loot) > 1: self.check_crafts()
+
 
         self.scene.update_animation(
             delta_time, ["Player", "Loot", "Items", "Enemies"]
@@ -597,14 +641,20 @@ class RoguelikeView(arcade.View):
                 self.player_sprite, self.scene[scene]
             )
         for loot in sprites:                                        # for every sprite in list
+
+            self.player_sprite.health += self.settings["HEALTH_BOOST"] # Add health
+            if self.player_sprite.health > 1.2: self.player_sprite.health = 1.2
+
             if loot.is_active:                                      # if active remove from active list
                 cords = tuple(loot.pos[i] + val * 16 for i, val in enumerate(loot.chunk))
                 del self.active_loot[cords]
                 if len(self.active_loot) > 1: self.check_crafts()
                 loot.is_active = False
+
             if scene: self.scene[scene].remove(loot)                # remove sprite from field
             if not loot.is_in_inventory(): del self.map.get(loot.chunk).loot[loot.pos]
             else: continue                                          # skip if dragged from inventory
+
             loot.remove_from_sprite_lists()
             for i, item in enumerate(self.labels):                  # if inventory has one += amount
                 if item['type'] == loot.type:
@@ -628,16 +678,32 @@ class RoguelikeView(arcade.View):
         self.clear()
 
         self.camera.use()
-
+        # Draw map and sprites
         self.scene.draw()
 
         self.gui_camera.use()
-
+        # Draw interface
         self.interface.draw()
-        for item in self.labels: 
+        for item in self.labels: # labels for inventory
             if item['label']:
                 item['label'].draw()
 
+        # Draw player's health bar
+        if self.settings["GAME_TYPE"] == "RUN":
+            self.timer_text.draw()
+
+            bar_width = 200
+            bar_height = 30
+            margin = 10
+            bar_x = self.settings["SCREEN_WIDTH"] - margin - bar_width
+            bar_y = margin
+
+            arcade.draw_rect_filled(arcade.rect.XYWH(bar_x, bar_y, bar_width, bar_height, arcade.Vec2(0,0)), arcade.color.GRAY)
+
+            current_width = bar_width * (self.player_sprite.health if self.player_sprite.health < 1 and self.player_sprite.health >= 0 else 1)
+            arcade.draw_rect_filled(arcade.rect.XYWH(bar_x, bar_y, current_width, bar_height, arcade.Vec2(0,0)), arcade.color.ORANGE_RED)
+        
+        # Draw debug info
         if self.debug_show:
             tile_size = self.settings['TILE_SIZE']
             info = [

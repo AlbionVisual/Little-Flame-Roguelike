@@ -49,6 +49,9 @@ default_settings = {
         "UP": 1,
         "DOWN": 1
     },
+    "GAME_TYPE": "INFINITE",
+    "HEALTH_BOOST": 0.1,
+    "HEALTH_LOSS_COFF": 30
 }
 
 def load_texture_pair(filename):
@@ -113,6 +116,7 @@ class PlayerCharacter(arcade.Sprite):
             load_texture_pair("Textures/flame/flame_{0:02d}.png".format(i)) for i in range(PlayerCharacter.settings['PLAYER_ANIM_FRAMES'])
         ]
         self.texture = self.walk_textures[0][self.character_face_direction]
+        self.health = 1.0
 
     def get_chunk(self):
         return (int(self.center_x // (16 * PlayerCharacter.settings['TILE_SIZE'])), int(self.center_y // (16 * PlayerCharacter.settings['TILE_SIZE'])))

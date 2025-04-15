@@ -141,6 +141,7 @@ class PlayMenu(SubMenu):
 
         @game_mode_1_button.event("on_click")
         def on_click_game_mode_1(event):
+            parent.settings["GAME_TYPE"] = "RUN"
             self.game_view = parent.game_view_class(**parent.settings)
             super(PlayMenu, self).on_click_back_button()
             parent.window.show_view(self.game_view)
@@ -149,12 +150,7 @@ class PlayMenu(SubMenu):
 
         @game_mode_2_button.event("on_click")
         def on_click_game_mode_2(event):
-            parent.settings["BORDERS"] = {
-                'LEFT': -1,
-                'RIGHT': -1,
-                'UP': -1,
-                'DOWN': -1
-            }
+            parent.settings["GAME_TYPE"] = "INFINITE"
             self.game_view = parent.game_view_class(**parent.settings)
             super(PlayMenu, self).on_click_back_button()
             parent.window.show_view(self.game_view)
