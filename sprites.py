@@ -22,10 +22,12 @@ default_settings = {
     'ENEMY_ANIM_FRAMES': 8,
     'TILE_HIT_BOX': [(-8.0, -8.0), (8.0, -8.0), (8.0, 8.0), (-8.0, 8.0)],
     'LOOT_HIT_BOX': [(-8.0, -8.0), (8.0, -8.0), (8.0, 8.0), (-8.0, 8.0)],
+    'ENEMY_HIT_BOX': [(-16.0, -16.0), (16.0, -16.0), (16.0, 16.0), (-16.0, 16.0)],
     'MOUSE_HIT_BOX_SIZE': (3.0, 3.0),
     'LOOT_SPAWN_ATTEMPTS': 5,
     'LOOT_SPAWN_CHANCE': 60,
-    'ENEMIES_SPAWN_CHANCE': 30,
+    'ENEMIES_SPAWN_ATTEMPTS': 1,
+    'ENEMIES_SPAWN_CHANCE': 100,
     'LOOT_TYPES_AMOUNT': 10,
     'ANIM_MOVEMENT_RANGE': 5,
     'PICKABLES_RESCALING': 0.8,
@@ -51,7 +53,10 @@ default_settings = {
     },
     "GAME_TYPE": "INFINITE",
     "HEALTH_BOOST": 0.1,
-    "HEALTH_LOSS_COFF": 30
+    "HEALTH_LOSS_COFF": 30,
+    "ENEMY_HEAT_POINTS": 0.2,
+    "MAX_LIGHT_STRENGTH":7,
+    "MIN_LIGHT_STRENGTH":2,
 }
 
 def load_texture_pair(filename):
@@ -60,12 +65,13 @@ def load_texture_pair(filename):
     return [img, flipped_img]
 
 class EnemyCharacter(arcade.Sprite):
-    settings = { # This data works if sth's wrong!
+    settings = {
         'RIGHT_FACING': 0,
         'LEFT_FACING': 1,
         'CHARACTER_SCALING': 1,
-        'PLAYER_ANIM_FRAMES': 10,
-        'TILE_SIZE': 128
+        'ENEMY_ANIM_FRAMES': 10,
+        'ENEMY_SCALING': 1,
+        'ENEMY_HIT_BOX': [(-16.0, -16.0), (16.0, -16.0), (16.0, 16.0), (-16.0, 16.0)],
     }
     
     def __init__(self):
@@ -77,9 +83,13 @@ class EnemyCharacter(arcade.Sprite):
         self.walk_textures = [
             load_texture_pair("Textures/swoop/swoop-{0:02d}.png".format(i)) for i in range(EnemyCharacter.settings['ENEMY_ANIM_FRAMES'])
         ]
-        self.texture = self.walk_textures[0][self.character_face_direction]
+        self.shape = EnemyCharacter.settings['ENEMY_HIT_BOX']
+        size = -TileSprite.settings["ENEMY_HIT_BOX"][0][0] +TileSprite.settings["ENEMY_HIT_BOX"][1][0]
+        self.transparent_texture = make_transparent_texture(size,size)
+        self.texture = self.transparent_texture
         self.visible = False
         self.alpha = 0
+        self.striking = True
 
     def get_chunk(self):
         return (int(self.center_x // (16 * EnemyCharacter.settings['TILE_SIZE'])), int(self.center_y // (16 * EnemyCharacter.settings['TILE_SIZE'])))
@@ -91,10 +101,13 @@ class EnemyCharacter(arcade.Sprite):
         elif self.change_x > 0 and self.character_face_direction == EnemyCharacter.settings['LEFT_FACING']:
             self.character_face_direction = EnemyCharacter.settings['RIGHT_FACING']
         self.cur_texture += 0.5
-        if self.cur_texture >= EnemyCharacter.settings['ENEMY_ANIM_FRAMES']:
+        if self.cur_texture >= EnemyCharacter.settings['ENEMY_ANIM_FRAMES'] + 10:
             self.cur_texture = 0
-        self.texture = self.walk_textures[int(self.cur_texture)][self.character_face_direction]
-
+        try:
+            self.texture = self.walk_textures[int(self.cur_texture)][self.character_face_direction]
+        except:
+            self.texture = self.transparent_texture
+        
         self.alpha = 255 if self.visible else 0
 
 class PlayerCharacter(arcade.Sprite):

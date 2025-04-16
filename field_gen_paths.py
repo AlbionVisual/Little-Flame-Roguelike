@@ -69,7 +69,7 @@ class MapPaths(Map):
         sep = ', '
         return f'Seed: {self.seed}, genered: {sep.join(str(i) for i in self.chunks.keys())}'
     
-    def genChunk(self, p):
+    def gen_chunk(self, p):
         self.chunks[tuple(p)] = ChunkPaths(p)
     
     def genLight(self, p, f, f_args, strength = 5): # simpliest circle
@@ -91,45 +91,12 @@ class MapPaths(Map):
                     if cell[0] == 5:
                         f(cell, f_args[1])
                         cell[0] = 1
-    
-    def genTreeLight(self, p, strength = 5):
-        vecs = [Vec(-1,0), Vec(0,1), Vec(1,0), Vec(0,-1), Vec(-1,-1), Vec(-1,1), Vec(1,1), Vec(1,-1)]
-        walls = set()
-        floor = set()
-        queue = []
-        checked = []
-        def checkCell(cell):
-            nonlocal queue
-            nonlocal checked
-            el = self.getCell(Vec(*cell["coord"]))
-            if el[0] in (2, 4, 6):
-                walls.add(el[1])
-                el[0] = 6
-            if el[0] in (1, 3, 5): 
-                floor.add(el[1])
-                el[0] = 5
-                for vec in vecs:
-                    pi = Vec(*cell["coord"]) + vec
-                    if tuple(pi) not in checked and cell["strength"] > 0:
-                        queue = [{"coord": (pi.x, pi.y), "strength": cell["strength"] - (1 if sum(abs(i) for i in vec) == 1 else  1.41421) }] + queue
-                        checked += [tuple(pi)]
-
-        checkCell({"coord": tuple(p), "strength": strength})
-        while queue:
-            el = queue.pop()
-            checkCell(el)
         
-        return walls, floor
-
-    def getCell(self, p):
-        return self.get(Vec(p.x // 16, p.y // 16)).field[p.y % 16][p.x % 16]
-
-    def get(self, p):
-        if p not in self:
-            self.genChunk(p)
-        if isinstance(p, Vec):
-            return self.chunks[(p.x, p.y)]
-        else: return self.chunks[(p[0],p[1])]
+    def get(self, *coords):
+        if isinstance(coords[0], (tuple,list,Vec)): coords = coords[0]
+        if tuple(coords) not in self:
+            self.gen_chunk(coords)
+        return self.chunks[tuple(coords)]
     
     def genArea(self, p, start = None):
         if not isinstance(p, Vec): p = Vec(*p)

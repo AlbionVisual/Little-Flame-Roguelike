@@ -75,6 +75,46 @@ class Map:
         if isinstance(pos[0], (tuple, list)): pos = pos[0]
         return tuple(pos) in self.chunks
 
+    def gen_light(self, pos, strength = 5):
+        return self.genTreeLightNoDiag(pos, strength)
+
+    def genTreeLightNoDiag(self, pos, strength = 5):
+        vecs = [(-1,0), (0,1), (1,0), (0,-1), (-1,-1), (-1,1), (1,1), (1,-1)]
+        walls = set()
+        floor = set()
+        queue = []
+        checked = []
+
+        def checkCell(cell):
+            nonlocal queue
+            nonlocal checked
+
+            el = self.getCell(*cell["coord"])
+            if el[0] in (2, 4, 6):
+                walls.add(el[1])
+                el[0] = 6
+            if el[0] in (1, 3, 5):
+                floor.add(el[1])
+                el[0] = 5
+                for vec in vecs:
+                    pi = (cell["coord"][0] + vec[0], cell["coord"][1] + vec[1])
+                    if pi not in checked and cell["strength"] > 0:
+                        if sum(abs(i) for i in vec) == 1:
+                            queue = [{"coord": pi, "strength": cell["strength"] - 1}] + queue
+                        elif (self.getCell((pi[0] - vec[0], pi[1]))[0] == 5 # пропускаем клетки, когда сбоку нет подсвеченного пола, а по диагонали пол (опускаем видение сквозь углы)
+                           or self.getCell((pi[0], pi[1] - vec[1]))[0] == 5):
+                            queue = [{"coord": pi, "strength": cell["strength"] - 1.41421}] + queue
+                            continue
+                        checked += [pi]
+
+        checkCell({"coord": tuple(pos), "strength": strength})
+
+        while queue:
+            el = queue.pop()
+            checkCell(el)
+        
+        return floor, walls
+
     def genTreeLight(self, pos, strength = 5):
         vecs = [(-1,0), (0,1), (1,0), (0,-1), (-1,-1), (-1,1), (1,1), (1,-1)]
         walls = set()

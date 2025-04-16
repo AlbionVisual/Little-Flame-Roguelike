@@ -1,5 +1,4 @@
 import arcade
-import arcade.clock
 from map import *
 from sprites import *
 from field_gen_paths import MapPaths
@@ -9,15 +8,10 @@ from PIL import ImageFilter
 
 
 class RoguelikeView(arcade.View):
-    def __init__(self, seed = -1, **new_settings):
+    def __init__(self, **new_settings):
         self.settings = default_settings
         for option in new_settings:
             self.settings[option] = new_settings[option]
-        PlayerCharacter.settings = self.settings
-        EnemyCharacter.settings = self.settings
-        TileSprite.settings = self.settings
-        LootSprite.settings = self.settings
-        self.seed = seed
         super().__init__()
         # super().__init__(self.settings['SCREEN_WIDTH'], self.settings['SCREEN_HEIGHT'], self.settings['SCREEN_TITLE'])
         arcade.set_background_color(arcade.csscolor.BLACK)
@@ -37,27 +31,7 @@ class RoguelikeView(arcade.View):
         self.gui_camera = None
         self.score = None
         self.active_loot = None
-
         self.debug_show = False
-
-    def setup(self):
-        arcade.set_background_color(arcade.csscolor.BLACK)
-
-        if self.settings["GAME_TYPE"] == "INFINITE":
-            self.settings["BORDERS"] = {
-                'LEFT': -1,
-                'RIGHT': -1,
-                'UP': -1,
-                'DOWN': -1
-            }
-        elif self.settings["GAME_TYPE"] == "RUN":
-            ...
-
-        self.tile_textures = self.settings['TILE_TYPES']
-        for _, tile in self.tile_textures.items():
-            tile['texture'] = arcade.load_texture(tile['texture'])
-            tile['lighten_texture'] = arcade.load_texture(tile['lighten_texture'])
-
         self.loot_textures = [
             arcade.load_texture('Textures/apple.png'),
             arcade.load_texture('Textures/book.png'),
@@ -82,11 +56,43 @@ class RoguelikeView(arcade.View):
         self.scene.add_sprite_list("Items", use_spatial_hash=True)
         self.scene.add_sprite_list("Player")
         self.scene.add_sprite_list("Enemies")
+
+    def setup(self, seed = -1):
+
+        PlayerCharacter.settings = self.settings
+        EnemyCharacter.settings = self.settings
+        TileSprite.settings = self.settings
+        LootSprite.settings = self.settings
+
+        arcade.set_background_color(arcade.csscolor.BLACK)
+
+        if self.settings["GAME_TYPE"] == "INFINITE":
+            self.settings["BORDERS"] = {
+                'LEFT': -1,
+                'RIGHT': -1,
+                'UP': -1,
+                'DOWN': -1
+            }
+        elif self.settings["GAME_TYPE"] == "RUN":
+            ...
+
+        self.tile_textures = self.settings['TILE_TYPES']
+        for _, tile in self.tile_textures.items():
+            tile['texture'] = arcade.load_texture(tile['texture'])
+            tile['lighten_texture'] = arcade.load_texture(tile['lighten_texture'])
     
+        self.scene.get_sprite_list("Enemies").clear()
+        self.scene.get_sprite_list("Loot").clear()
+        self.scene.get_sprite_list("Items").clear()
+        self.scene.get_sprite_list("Walls").clear()
+        self.scene.get_sprite_list("Floor").clear()
+
+        self.scene.get_sprite_list("Player").clear()
         self.player_sprite = PlayerCharacter()
         self.player_sprite.center_x = self.settings['TILE_SIZE'] * 7 + self.settings['TILE_SIZE'] // 2
         self.player_sprite.center_y = self.settings['TILE_SIZE'] * 7 + self.settings['TILE_SIZE'] // 2
         self.scene.add_sprite("Player", self.player_sprite)
+
 
         self.mouse_sprite = arcade.SpriteSolidColor(
             width=self.settings['MOUSE_HIT_BOX_SIZE'][0],
@@ -99,7 +105,7 @@ class RoguelikeView(arcade.View):
         
         Algorithm_class = globals()[self.settings["ALGORITHM_NAME"]]
         Map.settings = self.settings
-        self.map = Algorithm_class(self.seed)
+        self.map = Algorithm_class(seed)
         print('Seed: ', self.map.seed)
 
         self.gen_map()
@@ -107,7 +113,7 @@ class RoguelikeView(arcade.View):
         self.draw_map()
         self.lighten = (set(), set())
         self.change_lights(
-            self.map.genTreeLight(
+            self.map.gen_light(
                 (self.player_sprite.center_x // self.settings['TILE_SIZE'], self.player_sprite.center_y // self.settings['TILE_SIZE'])
             )
         )
@@ -178,6 +184,8 @@ class RoguelikeView(arcade.View):
             self.pickup("Items")
         elif key == arcade.key.Q:
             self.drop()
+        elif key == arcade.key.SPACE:
+            ...
         elif key == arcade.key.ESCAPE:
             blurred_image = arcade.get_image().filter(ImageFilter.GaussianBlur(radius=4))
             screenshot = arcade.Texture(blurred_image)
@@ -448,16 +456,19 @@ class RoguelikeView(arcade.View):
         self.scene.get_sprite_list("Loot").clear()
         self.scene.get_sprite_list("Items").clear()
 
+        # Count player's chunk as center one 
         if chunk_x == None: chunk_x = self.player_sprite.chunk[0]
         if chunk_y == None: chunk_y = self.player_sprite.chunk[1]
 
+        # For every chunk placed in distance not greater than R from center
         R = self.settings['DISPLAY_RANGE']
         drawn_chunks = set()
         for x in range(int(chunk_x - R), int(chunk_x + R + 1)):
             for y in range(int(chunk_y - R), int(chunk_y + R + 1)):
-
                 chunk = self.map.get((x, y))
-                for coord, data in chunk.loot.items():                      # for every loot in chunk
+
+                # for every loot in chunk
+                for coord, data in chunk.loot.items():                      
                     xi, yi = coord
                     if chunk.field[yi][xi][0] in (1, 5): loot = LootSprite(self.loot_textures[data['type']], pickable=data['pickable'])
                     else: loot = LootSprite(pickable=data['pickable'])
@@ -473,24 +484,28 @@ class RoguelikeView(arcade.View):
                     chunk.loot[coord]['sprite'] = loot
                     self.scene.add_sprite("Loot" if data["pickable"] else "Items", loot)
                 
-                for (xi, yi), data in chunk.enemies.items():                # for every enemy in chunk
+                # for every enemy in chunk
+                for (xi, yi), data in chunk.enemies.items():
                     enemy = EnemyCharacter()
                     if chunk.field[yi][xi][0] in (1, 5):
                         enemy.visible = True
-                    enemy.center_x = self.settings['TILE_SIZE'] * 16 * x + self.settings['TILE_SIZE'] * xi
-                    enemy.center_y = self.settings['TILE_SIZE'] * 16 * y + self.settings['TILE_SIZE'] * yi
+                    enemy.center_x = self.settings['TILE_SIZE'] * 16 * x + self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * xi
+                    enemy.center_y = self.settings['TILE_SIZE'] * 16 * y + self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * yi
                     enemy.pos = (xi, yi)
                     enemy.chunk = (x, y)
                     chunk.enemies[(xi, yi)]['sprite'] = enemy
                     self.scene.add_sprite("Enemies", enemy)
                 
-                if (x - chunk_x)**2 + (y - chunk_y)**2 > R**2: continue     # for all chunks in a circle
+                
+                if (x - chunk_x)**2 + (y - chunk_y)**2 > R**2: continue # skip chunks not in a circle
                 drawn_chunks.add((x, y))
-                if (x, y) in self.drawn_chunks: continue                    # skip already drawn chunks
+                if (x, y) in self.drawn_chunks: continue # skip already drawn chunks
+
+                # for all cells in chunk
                 for i, line in enumerate(chunk.field):
-                    for j, cell in enumerate(line):                         # for all cells in chunk
+                    for j, cell in enumerate(line):
                         tile_type = map_types_relation[cell[0]]
-                        if tile_type != 'nothing':                          # if cell has sth
+                        if tile_type != 'nothing': # if cell has sth
                             if len(cell) == 1:                              # create new sprite if there isn't one yet
                                 cell += [TileSprite()]
                                 cell[1].center_x = self.settings['TILE_SIZE'] // 2 + j * self.settings['TILE_SIZE'] + self.settings['TILE_SIZE'] * 16 * x
@@ -529,15 +544,17 @@ class RoguelikeView(arcade.View):
 
     def on_update(self, delta_time):
         self.physics_engine.update()
-
+        self.process_keychange()
+        
         # Updating camera and lights
         self.center_camera_to_player()
         if self.player_sprite.get_chunk() != self.player_sprite.chunk:
             self.gen_map()
             self.draw_map()
         
-        arg = self.map.genTreeLight(
-                (int(self.player_sprite.center_x // self.settings['TILE_SIZE']), int(self.player_sprite.center_y // self.settings['TILE_SIZE']))
+        arg = self.map.gen_light(
+                (int(self.player_sprite.center_x // self.settings['TILE_SIZE']), int(self.player_sprite.center_y // self.settings['TILE_SIZE'])),
+                self.player_sprite.health * (self.settings["MAX_LIGHT_STRENGTH"] - self.settings["MIN_LIGHT_STRENGTH"]) + self.settings["MIN_LIGHT_STRENGTH"]
         )
         if arg != self.lighten: self.change_lights(arg)
 
@@ -557,8 +574,10 @@ class RoguelikeView(arcade.View):
             seconds_100s = int((self.timer_value - 60 * minutes - seconds) * 100)
             self.timer_text.text = f"{minutes:02d}:{seconds:02d}:{seconds_100s:02d}"
         
-        # Picking up genered items if in touch
+        # Check touchables
         self.pickup()
+        if self.settings["GAME_TYPE"] == "RUN":
+            self.enemy_collision()
 
         # Checking wether active loot still active (not in shadow)
         for cords, loot in list(self.active_loot.items()):
@@ -672,6 +691,15 @@ class RoguelikeView(arcade.View):
                 self.interface.add_sprite("Icons",loot)
                 self.score += [loot.amount]
                 self.labels += [{'type': loot.type, 'label': arcade.Text(str(loot.amount), 32, (len(self.score) - 1) * 40 + 4, font_size=10), 'sprite': loot}]
+
+    def enemy_collision(self):
+        collided = arcade.check_for_collision_with_list(
+            self.player_sprite, self.scene["Enemies"]
+        )
+        for enemy in collided:
+            if enemy.striking:
+                self.player_sprite.health -= self.settings["ENEMY_HEAT_POINTS"]
+                enemy.striking = False
 
     def on_draw(self):
 

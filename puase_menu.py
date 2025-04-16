@@ -39,7 +39,6 @@ class PauseMenuView(arcade.View):
         )
 
         self.main_view = main_view
-
         
         @resume_button.event("on_click")
         def on_click_resume_button(event):
@@ -49,9 +48,9 @@ class PauseMenuView(arcade.View):
         @start_new_game_button.event("on_click")
         def on_click_start_new_game_button(event):
             # Create a new view because we are starting a new game.
-            game = main_view.__class__(-1, **main_view.settings)
-            game.setup()
-            self.window.show_view(game)
+            # game = main_view.__class__(-1, **main_view.settings)
+            main_view.setup()
+            self.window.show_view(main_view)
 
         @exit_button.event("on_click")
         def on_click_exit_button(event):
