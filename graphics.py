@@ -201,22 +201,7 @@ class RoguelikeView(arcade.View):
         elif key == arcade.key.Q:
             self.drop()
         elif key == arcade.key.SPACE:
-            mouse_x = self.mouse_sprite.position[0] + self.camera.position[0] - self.settings["SCREEN_WIDTH"] / 2
-            mouse_y = self.mouse_sprite.position[1] + self.camera.position[1] - self.settings["SCREEN_HEIGHT"] / 2
-            shoot_x = mouse_x - self.player_sprite.center_x
-            shoot_y = mouse_y - self.player_sprite.center_y
-            arc = AtackArc(
-                pos = self.player_sprite.position, 
-                vec = (shoot_x, shoot_y), 
-                scale=PlayerCharacter.settings["PLAYER_ATACK_RANGE"]
-            )
-            self.scene.add_sprite("Effects", arc)
-            collided = arcade.check_for_collision_with_list(
-                arc,
-                self.scene["Enemies"]
-            )
-            for enemy in collided:
-                self.scene["Enemies"].remove(enemy)
+            self.atack()
         elif key == arcade.key.ESCAPE:
             blurred_image = arcade.get_image().filter(ImageFilter.GaussianBlur(radius=4))
             screenshot = arcade.Texture(blurred_image)
@@ -730,6 +715,30 @@ class RoguelikeView(arcade.View):
             if enemy.striking:
                 self.player_sprite.health -= self.settings["ENEMY_HEAT_POINTS"]
                 enemy.striking = False
+
+    def atack(self):
+        mouse_x = self.mouse_sprite.position[0] + self.camera.position[0] - self.settings["SCREEN_WIDTH"] / 2
+        mouse_y = self.mouse_sprite.position[1] + self.camera.position[1] - self.settings["SCREEN_HEIGHT"] / 2
+        shoot_x = mouse_x - self.player_sprite.center_x
+        shoot_y = mouse_y - self.player_sprite.center_y
+        arc = AtackArc(
+            pos = self.player_sprite.position, 
+            vec = (shoot_x, shoot_y), 
+            scale=PlayerCharacter.settings["PLAYER_ATACK_RANGE"]
+        )
+        self.scene.add_sprite("Effects", arc)
+        collided = arcade.check_for_collision_with_list(
+            arc,
+            self.scene["Enemies"]
+        )
+        for enemy in collided: # finally remove that enemies from the game
+            ans = None
+            chunk_enemies = self.map.get(enemy.get_chunk()).enemies
+            for key in chunk_enemies:
+                if chunk_enemies[key]['sprite'] == enemy:
+                    ans = key
+            if ans: del chunk_enemies[ans]
+            enemy.killed()
 
     def on_draw(self):
 

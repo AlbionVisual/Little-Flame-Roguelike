@@ -124,6 +124,9 @@ class EnemyCharacter(arcade.Sprite):
     def get_chunk(self):
         return (int(self.center_x // (16 * EnemyCharacter.settings['TILE_SIZE'])), int(self.center_y // (16 * EnemyCharacter.settings['TILE_SIZE'])))
 
+    def killed(self):
+        self.remove_from_sprite_lists()
+
     def update_animation(self, delta_time: float = 1 / 60):
         
         if self.change_x < 0 and self.character_face_direction == EnemyCharacter.settings['RIGHT_FACING']:
