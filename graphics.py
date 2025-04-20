@@ -53,6 +53,9 @@ class RoguelikeView(arcade.View):
         self.enemies_textures = [
             load_texture_pair("Textures/soul/soul-{0:02d}.png".format(i)) for i in range(self.settings['ENEMY_ANIM_FRAMES'])
         ]
+        self.atack_textures = [
+            arcade.load_texture("Textures/swoop/swoop-{0:02d}.png".format(i)) for i in range(self.settings['ARC_ANIM_FRAMES'])
+        ]
 
         self.scene = arcade.Scene()
 
@@ -63,6 +66,7 @@ class RoguelikeView(arcade.View):
         self.scene.add_sprite_list("Testables", use_spatial_hash=True)
         self.scene.add_sprite_list("Player")
         self.scene.add_sprite_list("Enemies")
+        self.scene.add_sprite_list("Effects")
 
     def setup(self, seed = -1):
 
@@ -73,6 +77,7 @@ class RoguelikeView(arcade.View):
         AtackArc.settings = self.settings
 
         EnemyCharacter.walk_textures = self.enemies_textures
+        AtackArc.swoop_textures = self.atack_textures
 
         arcade.set_background_color(arcade.csscolor.BLACK)
 
@@ -96,6 +101,7 @@ class RoguelikeView(arcade.View):
         self.scene.get_sprite_list("Items").clear()
         self.scene.get_sprite_list("Walls").clear()
         self.scene.get_sprite_list("Floor").clear()
+        self.scene.get_sprite_list("Effects").clear()
 
         self.scene.get_sprite_list("Player").clear()
         self.player_sprite = PlayerCharacter(self.player_textures)
@@ -204,6 +210,7 @@ class RoguelikeView(arcade.View):
                 vec = (shoot_x, shoot_y), 
                 scale=PlayerCharacter.settings["PLAYER_ATACK_RANGE"]
             )
+            self.scene.add_sprite("Effects", arc)
             collided = arcade.check_for_collision_with_list(
                 arc,
                 self.scene["Enemies"]
@@ -621,7 +628,7 @@ class RoguelikeView(arcade.View):
 
 
         self.scene.update_animation(
-            delta_time, ["Player", "Loot", "Items", "Enemies"]
+            delta_time, ["Player", "Loot", "Items", "Enemies", "Effects"]
         )
     
     def drop(self, all = False, coords = 'player'):

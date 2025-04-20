@@ -35,7 +35,10 @@ default_settings = {
     "MIN_LIGHT_STRENGTH":2,
     "PLAYER_ATACK_RANGE":1,
 
-    'ARC_SCALING': 36,
+    'ARC_SCALING': 1.4,
+    'ARC_DISTANCE_COFF': 20,
+    'ARC_ANIM_FRAMES': 7,
+    'ARC_ANIM_SPEED': 0.4,
 
     'ENEMY_SCALING': 1 / 16,
     'ENEMY_HIT_BOX': [(-16.0, -16.0), (16.0, -16.0), (16.0, 16.0), (-16.0, 16.0)],
@@ -138,13 +141,35 @@ class EnemyCharacter(arcade.Sprite):
         self.alpha = 255 if self.visible else 0
 
 class AtackArc(arcade.Sprite):
-    def __init__(self, vec = (1, 0), scale = 1, pos = (0, 0)):
+    swoop_textures = []
+
+    def __init__(self, vec = (0, 1), scale = 1, pos = (0, 0)):
         scale *= AtackArc.settings["ARC_SCALING"]
-        super().__init__()
-        norm_vec = normalize_vec(vec, scale)
-        self.hit_box = arcade.hitbox.HitBox([(0, 0), rotate_vector(norm_vec, -60), rotate_vector(norm_vec, -30),norm_vec, rotate_vector(norm_vec, +30),rotate_vector(norm_vec, +60)])
-        self.position = pos
-        # Not drawable
+        super().__init__(scale=scale)
+        # top_vec = (0, 1)
+        # self.hit_box = arcade.hitbox.HitBox([(0, 0), rotate_vector(top_vec, -60), rotate_vector(top_vec, -30),top_vec, rotate_vector(top_vec, +30),rotate_vector(top_vec, +60)])
+        norm_vec = normalize_vec(vec, scale * AtackArc.settings['ARC_DISTANCE_COFF'])
+        self.position = [pos[0] + norm_vec[0], pos[1] + norm_vec[1]]
+        self.angle = -math.atan2(vec[1], vec[0]) * 180 / math.pi + 90
+        self.transparent_texture = make_transparent_texture(AtackArc.swoop_textures[0].width,AtackArc.swoop_textures[0].height)
+        self.texture = self.transparent_texture
+
+        self.cur_texture = 0
+        self.texture = AtackArc.swoop_textures[self.cur_texture]
+
+    def update_animation(self, delta_time: float = 1 / 60):
+        self.cur_texture += AtackArc.settings['ARC_ANIM_SPEED']
+        if self.cur_texture >= AtackArc.settings['ARC_ANIM_FRAMES'] :
+            # self.cur_texture = 0
+            self.remove_from_sprite_lists()
+        try:
+            self.texture = AtackArc.swoop_textures[int(self.cur_texture)]
+        except:
+            self.texture = self.transparent_texture
+        
+        self.alpha = 255 if self.visible else 0
+
+
 
 class PlayerCharacter(arcade.Sprite):
     settings = { # This data works if sth's wrong!
