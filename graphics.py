@@ -47,6 +47,12 @@ class RoguelikeView(arcade.View):
         self.interface_textures = {
             "selector": arcade.load_texture('Textures/frame.png')
         }
+        self.player_textures = [
+            load_texture_pair("Textures/flame/flame_{0:02d}.png".format(i)) for i in range(self.settings['PLAYER_ANIM_FRAMES'])
+        ]
+        self.enemies_textures = [
+            load_texture_pair("Textures/soul/soul-{0:02d}.png".format(i)) for i in range(self.settings['ENEMY_ANIM_FRAMES'])
+        ]
 
         self.scene = arcade.Scene()
 
@@ -54,6 +60,7 @@ class RoguelikeView(arcade.View):
         self.scene.add_sprite_list("Floor", use_spatial_hash=True)
         self.scene.add_sprite_list("Loot", use_spatial_hash=True)
         self.scene.add_sprite_list("Items", use_spatial_hash=True)
+        self.scene.add_sprite_list("Testables", use_spatial_hash=True)
         self.scene.add_sprite_list("Player")
         self.scene.add_sprite_list("Enemies")
 
@@ -63,6 +70,9 @@ class RoguelikeView(arcade.View):
         EnemyCharacter.settings = self.settings
         TileSprite.settings = self.settings
         LootSprite.settings = self.settings
+        AtackArc.settings = self.settings
+
+        EnemyCharacter.walk_textures = self.enemies_textures
 
         arcade.set_background_color(arcade.csscolor.BLACK)
 
@@ -88,7 +98,7 @@ class RoguelikeView(arcade.View):
         self.scene.get_sprite_list("Floor").clear()
 
         self.scene.get_sprite_list("Player").clear()
-        self.player_sprite = PlayerCharacter()
+        self.player_sprite = PlayerCharacter(self.player_textures)
         self.player_sprite.center_x = self.settings['TILE_SIZE'] * 7 + self.settings['TILE_SIZE'] // 2
         self.player_sprite.center_y = self.settings['TILE_SIZE'] * 7 + self.settings['TILE_SIZE'] // 2
         self.scene.add_sprite("Player", self.player_sprite)
@@ -185,7 +195,21 @@ class RoguelikeView(arcade.View):
         elif key == arcade.key.Q:
             self.drop()
         elif key == arcade.key.SPACE:
-            ...
+            mouse_x = self.mouse_sprite.position[0] + self.camera.position[0] - self.settings["SCREEN_WIDTH"] / 2
+            mouse_y = self.mouse_sprite.position[1] + self.camera.position[1] - self.settings["SCREEN_HEIGHT"] / 2
+            shoot_x = mouse_x - self.player_sprite.center_x
+            shoot_y = mouse_y - self.player_sprite.center_y
+            arc = AtackArc(
+                pos = self.player_sprite.position, 
+                vec = (shoot_x, shoot_y), 
+                scale=PlayerCharacter.settings["PLAYER_ATACK_RANGE"]
+            )
+            collided = arcade.check_for_collision_with_list(
+                arc,
+                self.scene["Enemies"]
+            )
+            for enemy in collided:
+                self.scene["Enemies"].remove(enemy)
         elif key == arcade.key.ESCAPE:
             blurred_image = arcade.get_image().filter(ImageFilter.GaussianBlur(radius=4))
             screenshot = arcade.Texture(blurred_image)
@@ -199,8 +223,6 @@ class RoguelikeView(arcade.View):
             self.selector_sprite.slot = key - 49
         elif key == arcade.key.F3:
             self.debug_show = not self.debug_show
-        elif key == arcade.key.F5:
-            ... # I mean, here will be debugger? I guess...
         self.process_keychange()
     
     def on_key_release(self, key, mods):
@@ -546,6 +568,7 @@ class RoguelikeView(arcade.View):
         self.physics_engine.update()
         self.process_keychange()
         
+
         # Updating camera and lights
         self.center_camera_to_player()
         if self.player_sprite.get_chunk() != self.player_sprite.chunk:
@@ -708,6 +731,8 @@ class RoguelikeView(arcade.View):
         self.camera.use()
         # Draw map and sprites
         self.scene.draw()
+
+        # self.scene.draw_hit_boxes(names=["Enemies","Player"]) # if you want to see hitboxes
 
         self.gui_camera.use()
         # Draw interface
