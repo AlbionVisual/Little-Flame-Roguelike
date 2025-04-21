@@ -33,16 +33,22 @@ class RoguelikeView(arcade.View):
         self.active_loot = None
         self.debug_show = False
         self.loot_textures = [
-            arcade.load_texture('Textures/apple.png'),
-            arcade.load_texture('Textures/book.png'),
-            arcade.load_texture('Textures/carrot.png'),
-            arcade.load_texture('Textures/compass.png'),
-            arcade.load_texture('Textures/chainmail_helmet.png'),
-            arcade.load_texture('Textures/feather.png'),
-            arcade.load_texture('Textures/fish.png'),
-            arcade.load_texture('Textures/stone_sword.png'),
-            arcade.load_texture('Textures/wood_axe.png'),
-            arcade.load_texture('Textures/stick.png')
+            arcade.load_texture('Textures/Loot/book.png'),
+            arcade.load_texture('Textures/Loot/wood_axe.png'),
+            arcade.load_texture('Textures/Loot/stick.png'),
+            arcade.load_texture('Textures/Loot/log_oak.png'),
+            arcade.load_texture('Textures/Loot/ladder.png'),
+            arcade.load_texture('Textures/Loot/jungle_boat.png'),
+            arcade.load_texture('Textures/Loot/birch_boat.png'),
+            arcade.load_texture('Textures/Loot/door_birch.png'),
+            arcade.load_texture('Textures/Loot/carrot.png'),
+            arcade.load_texture('Textures/Loot/feather.png'),
+            arcade.load_texture('Textures/Loot/apple.png'),
+            arcade.load_texture('Textures/Loot/fish.png'),
+            arcade.load_texture('Textures/Loot/jukebox_side.png'),
+            arcade.load_texture('Textures/Loot/crafting_table_front.png'),
+            arcade.load_texture('Textures/Loot/bookshelf.png'),
+            arcade.load_texture('Textures/Loot/stone_sword.png'),
         ]
         self.interface_textures = {
             "selector": arcade.load_texture('Textures/frame.png')

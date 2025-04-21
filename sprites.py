@@ -69,7 +69,7 @@ default_settings = {
     'LOOT_HIT_BOX': [(-8.0, -8.0), (8.0, -8.0), (8.0, 8.0), (-8.0, 8.0)],
     'LOOT_SPAWN_ATTEMPTS': 5,
     'LOOT_SPAWN_CHANCE': 60,
-    'LOOT_TYPES_AMOUNT': 10,
+    'LOOT_TYPES_AMOUNT': 9,
     
     'MOUSE_HIT_BOX_SIZE': (3.0, 3.0),
 
