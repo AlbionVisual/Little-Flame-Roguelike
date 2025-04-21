@@ -1,5 +1,6 @@
 import arcade
 import arcade.gui
+from main_menu import StartView
 
 class PauseMenuView(arcade.View):
     """Main menu view class."""
@@ -17,7 +18,7 @@ class PauseMenuView(arcade.View):
         volume_button = arcade.gui.UIFlatButton(text="Volume", width=150)
         options_button = arcade.gui.UIFlatButton(text="Options", width=150)
 
-        exit_button = arcade.gui.UIFlatButton(text="Exit", width=320)
+        exit_button = arcade.gui.UIFlatButton(text="To main menu", width=320)
 
         self.grid = arcade.gui.UIGridLayout(
             column_count=2, row_count=3, horizontal_spacing=20, vertical_spacing=20
@@ -54,7 +55,8 @@ class PauseMenuView(arcade.View):
 
         @exit_button.event("on_click")
         def on_click_exit_button(event):
-            arcade.exit()
+            start_view = StartView(main_view, **main_view.settings)
+            self.window.show_view(start_view)
 
         @volume_button.event("on_click")
         def on_click_volume_button(event):

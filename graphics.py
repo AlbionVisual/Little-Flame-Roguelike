@@ -56,6 +56,10 @@ class RoguelikeView(arcade.View):
         self.atack_textures = [
             arcade.load_texture("Textures/swoop/swoop-{0:02d}.png".format(i)) for i in range(self.settings['ARC_ANIM_FRAMES'])
         ]
+        self.tile_textures = self.settings['TILE_TYPES']
+        for _, tile in self.tile_textures.items():
+            tile['texture'] = arcade.load_texture(tile['texture'])
+            tile['lighten_texture'] = arcade.load_texture(tile['lighten_texture'])
 
         self.scene = arcade.Scene()
 
@@ -68,7 +72,10 @@ class RoguelikeView(arcade.View):
         self.scene.add_sprite_list("Enemies")
         self.scene.add_sprite_list("Effects")
 
-    def setup(self, seed = -1):
+    def setup(self, seed = -1, **new_settings):
+
+        for option in new_settings:
+            self.settings[option] = new_settings[option]
 
         PlayerCharacter.settings = self.settings
         EnemyCharacter.settings = self.settings
@@ -90,12 +97,7 @@ class RoguelikeView(arcade.View):
             }
         elif self.settings["GAME_TYPE"] == "RUN":
             ...
-
-        self.tile_textures = self.settings['TILE_TYPES']
-        for _, tile in self.tile_textures.items():
-            tile['texture'] = arcade.load_texture(tile['texture'])
-            tile['lighten_texture'] = arcade.load_texture(tile['lighten_texture'])
-    
+   
         self.scene.get_sprite_list("Enemies").clear()
         self.scene.get_sprite_list("Loot").clear()
         self.scene.get_sprite_list("Items").clear()

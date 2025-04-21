@@ -1,15 +1,12 @@
 import arcade
 import arcade.gui
-from sprites import default_settings
 
 class StartView(arcade.View):
 
-    def __init__(self, game_view_class, new_settings):
+    def __init__(self, game_view, **new_settings):
         super().__init__()
-        self.settings = default_settings
-        for option in new_settings:
-            self.settings[option] = new_settings[option]
-        self.game_view_class = game_view_class
+        self.game_view = game_view
+        self.settings = new_settings
         self.manager = arcade.gui.UIManager()
 
         play_button = arcade.gui.UIFlatButton(text="Play", width=250)
@@ -116,7 +113,7 @@ class OptionsMenu(SubMenu):
         algorithm_label = arcade.gui.UILabel(text="Select algorithm (default is random):")
         algorithm_dropdown = arcade.gui.UIDropdown(
             options=["Map", "MapPaths"],
-            default=parent.settings["ALGORITHM_NAME"]
+            default=parent.settings.get('ALGORITHM_NAME', 'Map')
         )
         v_box_algorithm = arcade.gui.UIBoxLayout(space_between=5)
         v_box_algorithm.add(algorithm_label)
@@ -151,19 +148,17 @@ class PlayMenu(SubMenu):
         @game_mode_1_button.event("on_click")
         def on_click_game_mode_1(event):
             parent.settings["GAME_TYPE"] = "RUN"
-            self.game_view = parent.game_view_class(**parent.settings)
+            parent.game_view.setup(-1, **parent.settings)
             super(PlayMenu, self).on_click_back_button()
-            parent.window.show_view(self.game_view)
-            self.game_view.setup()
+            parent.window.show_view(parent.game_view)
 
 
         @game_mode_2_button.event("on_click")
         def on_click_game_mode_2(event):
             parent.settings["GAME_TYPE"] = "INFINITE"
-            self.game_view = parent.game_view_class(**parent.settings)
+            parent.game_view.setup(-1, **parent.settings)
             super(PlayMenu, self).on_click_back_button()
-            parent.window.show_view(self.game_view)
-            self.game_view.setup()
+            parent.window.show_view(parent.game_view)
 
         super().__init__(
             "Start game",
