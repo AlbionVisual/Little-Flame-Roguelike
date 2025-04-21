@@ -1,11 +1,14 @@
 import arcade
 import arcade.gui
+from sprites import default_settings
 
 class StartView(arcade.View):
 
-    def __init__(self, game_view_class, settings):
+    def __init__(self, game_view_class, new_settings):
         super().__init__()
-        self.settings = settings
+        self.settings = default_settings
+        for option in new_settings:
+            self.settings[option] = new_settings[option]
         self.game_view_class = game_view_class
         self.manager = arcade.gui.UIManager()
 
@@ -46,6 +49,12 @@ class StartView(arcade.View):
         self.clear()
 
         self.manager.draw()
+
+    def on_key_press(self, key, mods):
+        if key == arcade.key.F11:
+            self.window.set_fullscreen(not self.window.fullscreen)
+            self.camera.viewport = self.window.rect
+            self.camera.projection = arcade.LRBT(0.0, self.width, 0.0, self.height)
 
 class SubMenu(arcade.gui.UIMouseFilterMixin, arcade.gui.UIAnchorLayout):
     """Acts like a fake view/window."""

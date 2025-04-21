@@ -25,6 +25,8 @@ default_settings = {
     'SCREEN_WIDTH': 1000,
     'SCREEN_HEIGHT': 650,
     'SCREEN_TITLE': "Roguelike graphics",
+    'MIN_SCREEN_WIDTH': 150,
+    'MIN_SCREEN_HEIGHT': 100,
 
     'CHARACTER_SCALING': 1 / 16,
     'PLAYER_MOVEMENT_SPEED': 3,
@@ -83,6 +85,7 @@ default_settings = {
         "DOWN": 1
     },
     "GAME_TYPE": "INFINITE",
+    'CAMERA_ALGORYTHM': 'OLD',
 
     'ANIM_MOVEMENT_RANGE': 5,
     'PICKABLES_RESCALING': 0.8,

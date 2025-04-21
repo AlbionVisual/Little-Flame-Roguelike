@@ -169,6 +169,7 @@ class RoguelikeView(arcade.View):
 
         self.camera = arcade.Camera2D()
         self.gui_camera = arcade.Camera2D()
+
         self.score = []
         self.active_loot = {}
 
@@ -215,6 +216,12 @@ class RoguelikeView(arcade.View):
             self.selector_sprite.slot = key - 49
         elif key == arcade.key.F3:
             self.debug_show = not self.debug_show
+        elif key == arcade.key.F11:
+            self.window.set_fullscreen(not self.window.fullscreen)
+            self.camera.viewport = self.window.rect
+            self.camera.projection = arcade.LRBT(-self.width/2, self.width/2, -self.height/2, self.height/2)
+            self.gui_camera.viewport = self.window.rect
+            self.gui_camera.projection = arcade.LRBT(-self.width/2, self.width/2, -self.height/2, self.height/2)
         self.process_keychange()
     
     def on_key_release(self, key, mods):
@@ -313,7 +320,35 @@ class RoguelikeView(arcade.View):
             self.dragging_item_sprite.center_x = x
             self.dragging_item_sprite.center_y = y
 
+    def on_resize(self, width, height):
+        super().on_resize(width, height)
+        self.camera.viewport = self.window.rect
+        self.camera.projection = arcade.LRBT(-self.width/2, self.width/2, -self.height/2, self.height/2)
+        self.gui_camera.viewport = self.window.rect
+        self.gui_camera.projection = arcade.LRBT(-self.width/2, self.width/2, -self.height/2, self.height/2)
+        self.gui_camera.position = (self.window.center_x, self.window.center_y)
+        self.timer_text.x = self.width - 10
+        self.timer_text.y = self.height - 10
+
     def center_camera_to_player(self):
+        # Move the camera to center on the player
+        self.camera.position = arcade.math.smerp_2d(
+            self.camera.position,
+            self.player_sprite.position,
+            self.window.delta_time,
+            0.3,
+        )
+
+        # Constrain the camera's position to the camera bounds.
+        # if (self.settings['BORDERS']['LEFT'] != -1 and
+        #     self.camera.view_data.position[0]
+        #     < -self.settings['BORDERS']['LEFT']*self.settings['TILE_SIZE']*16
+        # ):
+        #     self.camera.view_data.position = (-self.settings['BORDERS']['LEFT']*self.settings['TILE_SIZE']*16,self.camera.view_data.position[1])
+
+        
+
+    def center_camera_to_player_old(self):
         # screen_center_x = self.player_sprite.center_x - self.camera.viewport_width / 2
         # screen_center_y = self.player_sprite.center_y - self.camera.viewport_height / 2
 
@@ -562,7 +597,9 @@ class RoguelikeView(arcade.View):
         
 
         # Updating camera and lights
-        self.center_camera_to_player()
+        if self.settings['CAMERA_ALGORYTHM'] == 'OLD':
+            self.center_camera_to_player_old()
+        else: self.center_camera_to_player()
         if self.player_sprite.get_chunk() != self.player_sprite.chunk:
             self.gen_map()
             self.draw_map()
@@ -717,8 +754,8 @@ class RoguelikeView(arcade.View):
                 enemy.striking = False
 
     def atack(self):
-        mouse_x = self.mouse_sprite.position[0] + self.camera.position[0] - self.settings["SCREEN_WIDTH"] / 2
-        mouse_y = self.mouse_sprite.position[1] + self.camera.position[1] - self.settings["SCREEN_HEIGHT"] / 2
+        mouse_x = self.mouse_sprite.position[0] + self.camera.position[0] - self.window.width / 2
+        mouse_y = self.mouse_sprite.position[1] + self.camera.position[1] - self.window.height / 2
         shoot_x = mouse_x - self.player_sprite.center_x
         shoot_y = mouse_y - self.player_sprite.center_y
         arc = AtackArc(
@@ -764,7 +801,7 @@ class RoguelikeView(arcade.View):
             bar_width = 200
             bar_height = 30
             margin = 10
-            bar_x = self.settings["SCREEN_WIDTH"] - margin - bar_width
+            bar_x = self.width - margin - bar_width
             bar_y = margin
 
             arcade.draw_rect_filled(arcade.rect.XYWH(bar_x, bar_y, bar_width, bar_height, arcade.Vec2(0,0)), arcade.color.GRAY)
@@ -786,12 +823,12 @@ class RoguelikeView(arcade.View):
             ]
             line_height = 25
             start_x = 5
-            start_y = self.settings['SCREEN_HEIGHT'] - line_height
+            start_y = self.height - line_height
             for line in info:
                 arcade.draw_text(line,
                                 start_x,
                                 start_y,
                                 arcade.color.WHITE,
                                 20,
-                                width=self.settings['SCREEN_WIDTH'])
+                                width=self.width)
                 start_y -= line_height

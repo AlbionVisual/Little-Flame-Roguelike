@@ -4,5 +4,6 @@
     "SCREEN_TITLE": "Little Flame",
     "ALGORITHM_NAME": "Map",
     "HEALTH_BOOST": 0.2,
-    "HEALTH_LOSS_COFF": 60
+    "HEALTH_LOSS_COFF": 60,
+    "CAMERA_ALGORYTHM": "new"
 }
