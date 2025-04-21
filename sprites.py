@@ -73,8 +73,8 @@ default_settings = {
     
     'MOUSE_HIT_BOX_SIZE': (3.0, 3.0),
 
-    'RIGHT_FACING': 0,
-    'LEFT_FACING': 1,
+    'RIGHT_FACING': 1,
+    'LEFT_FACING': 0,
     
     'DISPLAY_RANGE': 2,
     "ALGORITHM_NAME": "MapPaths",
@@ -114,9 +114,9 @@ class EnemyCharacter(arcade.Sprite):
         self.chunk = (0, 0)
         self.shape = EnemyCharacter.settings['ENEMY_HIT_BOX']
         size = -TileSprite.settings["ENEMY_HIT_BOX"][0][0] +TileSprite.settings["ENEMY_HIT_BOX"][1][0]
+        
         self.transparent_texture = make_transparent_texture(size,size)
         self.texture = self.transparent_texture
-
         self.cur_texture = 0
         self.texture = EnemyCharacter.walk_textures[self.cur_texture][self.character_face_direction]
 
@@ -124,11 +124,17 @@ class EnemyCharacter(arcade.Sprite):
         self.alpha = 0
         self.striking = True
 
+        self.change_x = 0.7
+        self.change_y = 0.3
+
     def get_chunk(self):
         return (int(self.center_x // (16 * EnemyCharacter.settings['TILE_SIZE'])), int(self.center_y // (16 * EnemyCharacter.settings['TILE_SIZE'])))
 
     def killed(self):
         self.remove_from_sprite_lists()
+    
+    def update(self, delta_time = 1 / 60, *args, **kwargs):
+        return super().update(delta_time, *args, **kwargs)
 
     def update_animation(self, delta_time: float = 1 / 60):
         
@@ -174,8 +180,6 @@ class AtackArc(arcade.Sprite):
             self.texture = self.transparent_texture
         
         self.alpha = 255 if self.visible else 0
-
-
 
 class PlayerCharacter(arcade.Sprite):
     settings = { # This data works if sth's wrong!

@@ -340,14 +340,17 @@ class RoguelikeView(arcade.View):
         )
 
         # Constrain the camera's position to the camera bounds.
-        # if (self.settings['BORDERS']['LEFT'] != -1 and
-        #     self.camera.view_data.position[0]
-        #     < -self.settings['BORDERS']['LEFT']*self.settings['TILE_SIZE']*16
-        # ):
-        #     self.camera.view_data.position = (-self.settings['BORDERS']['LEFT']*self.settings['TILE_SIZE']*16,self.camera.view_data.position[1])
-
         
-
+        # self.camera_bounds = arcade.LRBT(
+        #     self.window.width/2.0,
+        #     tile_map.width * GRID_PIXEL_SIZE - self.window.width/2.0,
+        #     self.window.height/2.0,
+        #     tile_map.height * GRID_PIXEL_SIZE
+        # )
+        # self.camera_sprites.view_data.position = arcade.camera.grips.constrain_xy(
+        #     self.camera_sprites.view_data, self.camera_bounds
+        # )
+        
     def center_camera_to_player_old(self):
         # screen_center_x = self.player_sprite.center_x - self.camera.viewport_width / 2
         # screen_center_y = self.player_sprite.center_y - self.camera.viewport_height / 2
@@ -501,7 +504,7 @@ class RoguelikeView(arcade.View):
         
     def draw_map(self, chunk_x = None, chunk_y = None):
 
-        self.scene.get_sprite_list("Enemies").clear()
+        # self.scene.get_sprite_list("Enemies").clear()
         self.scene.get_sprite_list("Loot").clear()
         self.scene.get_sprite_list("Items").clear()
 
@@ -534,16 +537,27 @@ class RoguelikeView(arcade.View):
                     self.scene.add_sprite("Loot" if data["pickable"] else "Items", loot)
                 
                 # for every enemy in chunk
+                to_remove = []
                 for (xi, yi), data in chunk.enemies.items():
-                    enemy = EnemyCharacter()
-                    if chunk.field[yi][xi][0] in (1, 5):
-                        enemy.visible = True
-                    enemy.center_x = self.settings['TILE_SIZE'] * 16 * x + self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * xi
-                    enemy.center_y = self.settings['TILE_SIZE'] * 16 * y + self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * yi
-                    enemy.pos = (xi, yi)
-                    enemy.chunk = (x, y)
-                    chunk.enemies[(xi, yi)]['sprite'] = enemy
-                    self.scene.add_sprite("Enemies", enemy)
+                    if 'sprite' not in data.keys():
+                        enemy = EnemyCharacter()
+                        if chunk.field[yi][xi][0] in (1, 5):
+                            enemy.visible = True
+                        enemy.center_x = self.settings['TILE_SIZE'] * 16 * x + self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * xi
+                        enemy.center_y = self.settings['TILE_SIZE'] * 16 * y + self.settings['TILE_SIZE'] // 2 + self.settings['TILE_SIZE'] * yi
+                        enemy.pos = (xi, yi)
+                        enemy.chunk = (x, y)
+                        chunk.enemies[(xi, yi)]['sprite'] = enemy
+                        self.scene.add_sprite("Enemies", enemy)
+                    else:
+                        enemy = data['sprite']
+                        # self.scene.add_sprite("Enemies", enemy)
+                        to_remove+=[(xi,yi)]
+                        # self.map.get(enemy.get_chunk()).enemies[enemy.pos]
+                        # enemy.chunk = enemy.get_chunk()
+                        
+                for key in to_remove:
+                    del chunk.enemies[key]
                 
                 
                 if (x - chunk_x)**2 + (y - chunk_y)**2 > R**2: continue # skip chunks not in a circle
@@ -594,7 +608,6 @@ class RoguelikeView(arcade.View):
     def on_update(self, delta_time):
         self.physics_engine.update()
         self.process_keychange()
-        
 
         # Updating camera and lights
         if self.settings['CAMERA_ALGORYTHM'] == 'OLD':
@@ -648,6 +661,29 @@ class RoguelikeView(arcade.View):
                 self.active_loot[(x, y)] = loot
                 if len(self.active_loot) > 1: self.check_crafts()
 
+        # Update sprites
+        for enemy in self.scene["Enemies"]:
+            enemy.center_x += enemy.change_x
+            walls_hit = arcade.check_for_collision_with_list(enemy, self.scene["Walls"])
+            for wall in walls_hit:
+                if enemy.change_x > 0:
+                    enemy.right = wall.left
+                elif enemy.change_x < 0:
+                    enemy.left = wall.right
+            if len(walls_hit) > 0:
+                enemy.change_x *= -1
+
+            enemy.center_y += enemy.change_y
+            walls_hit = arcade.check_for_collision_with_list(enemy, self.scene["Walls"])
+            for wall in walls_hit:
+                if enemy.change_y > 0:
+                    enemy.top = wall.bottom
+                elif enemy.change_y < 0:
+                    enemy.bottom = wall.top
+            if len(walls_hit) > 0:
+                enemy.change_y *= -1
+        
+        self.scene["Enemies"].update(delta_time)
 
         self.scene.update_animation(
             delta_time, ["Player", "Loot", "Items", "Enemies", "Effects"]

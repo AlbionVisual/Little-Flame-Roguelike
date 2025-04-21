@@ -5,5 +5,5 @@
     "ALGORITHM_NAME": "Map",
     "HEALTH_BOOST": 0.2,
     "HEALTH_LOSS_COFF": 60,
-    "CAMERA_ALGORYTHM": "new"
+    "CAMERA_ALGORYTHM": "OLD"
 }
