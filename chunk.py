@@ -17,15 +17,20 @@ class Chunk:
     seed = -1
     hash_max = 4_294_967_295
 
-    def __init__(self, p, *other):
-        if other: print('you passed wrong amount of parameters: ', other)
+    def init_vars(self, p):
         if not hasattr(self, 'pos'): self.pos = tuple(p)
         self.field = [[[0] for _ in range(16)] for _ in range(16)]
         self.loot = {}
         self.enemies = {}
         self.genered = True
 
+    def __init__(self, p, *other):
+        if other: print('you passed wrong amount of parameters: ', other)
+        self.init_vars(p)
+
         self.genField()
+        self.spawn_loot()
+        self.spawn_enemies()
 
         self.check_borders()
 
@@ -33,14 +38,17 @@ class Chunk:
         for y in range(16):
             for x in range(16):
                 rand_num = self.hash_func(x, y, *self.pos)
-                self.field[x][y] = [3 if rand_num > 1/4*Chunk.hash_max else 4]
+                self.field[x][y] = [3 if rand_num > self.settings['WALL_SPAWN_CHANCE']*Chunk.hash_max else 4]
 
+    def spawn_loot(self):
         for i in range(Chunk.settings["LOOT_SPAWN_ATTEMPTS"]):
             if self.hash_func(self.pos[0], self.pos[1], i)//100 % 100 <= Chunk.settings["LOOT_SPAWN_CHANCE"]:
                 coord_x = int(self.hash_func(self.pos[0] * (i + 1), self.pos[1] * (i + 1)) % 16)
                 coord_y = int(self.hash_func(self.pos[1] * (i + 1), self.pos[0] * (i + 1)) % 16)
                 # print('New loot, cell: ', self.field[coord_x][coord_y][0])
                 if self.field[coord_x][coord_y][0] == 3: self.loot[(coord_x, coord_y)] = {'type': self.hash_func(self.pos[0] * (i + 1), self.pos[1] * (i + 1)) % Chunk.settings["LOOT_TYPES_AMOUNT"], 'pickable': True}
+    
+    def spawn_enemies(self):
         for i in range(Chunk.settings["ENEMIES_SPAWN_ATTEMPTS"]):
             if self.hash_func(self.pos[0], self.pos[1], i) % 100 <= Chunk.settings["ENEMIES_SPAWN_CHANCE"]:
                 coord_x = int(self.hash_func(self.pos[0], self.pos[1]) % 16)

@@ -112,7 +112,7 @@ class OptionsMenu(SubMenu):
 
         algorithm_label = arcade.gui.UILabel(text="Select algorithm (default is random):")
         algorithm_dropdown = arcade.gui.UIDropdown(
-            options=["Map", "MapPaths"],
+            options=["Map", "MapPaths", "MapLayers"],
             default=parent.settings.get('ALGORITHM_NAME', 'Map')
         )
         v_box_algorithm = arcade.gui.UIBoxLayout(space_between=5)

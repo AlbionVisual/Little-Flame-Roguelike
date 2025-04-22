@@ -33,7 +33,7 @@ default_settings = {
     "HEALTH_BOOST": 0.1,
     "HEALTH_LOSS_COFF": 30,
     'PLAYER_ANIM_FRAMES': 2,
-    "MAX_LIGHT_STRENGTH":7,
+    "MAX_LIGHT_STRENGTH":4,
     "MIN_LIGHT_STRENGTH":2,
     "PLAYER_ATACK_RANGE":1,
 
@@ -84,8 +84,11 @@ default_settings = {
         "UP": 1,
         "DOWN": 1
     },
-    "GAME_TYPE": "INFINITE",
+    'GAME_TYPE': 'INFINITE',
     'CAMERA_ALGORYTHM': 'OLD',
+    'AMOUNT_OF_LAYERS':7,
+    'WALL_SPAWN_CHANCE':0.5,
+    'MIN_WEIGHTS_COFF':0.2,
 
     'ANIM_MOVEMENT_RANGE': 5,
     'PICKABLES_RESCALING': 0.8,

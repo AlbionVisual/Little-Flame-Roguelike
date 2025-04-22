@@ -2,9 +2,11 @@ import arcade
 from map import *
 from sprites import *
 from field_gen_paths import MapPaths
+from map_layers import MapLayers
 from puase_menu import PauseMenuView
 from game_over_view import GameOverView
 from PIL import ImageFilter
+from map_layers import *
 
 
 class RoguelikeView(arcade.View):

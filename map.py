@@ -25,10 +25,10 @@ class Map:
             seed = randint(1e6,1e10)
             while not isPrime(seed):
                 seed = randint(1e6,1e10)
-
+        self.chunk_class = Chunk
         self.seed = seed
-        Chunk.seed = seed
-        Chunk.settings.update(Map.settings)
+        self.chunk_class.seed = seed
+        self.chunk_class.settings.update(Map.settings)
         self.chunks = {}
     
     def genArea(self, coords):
@@ -44,7 +44,7 @@ class Map:
         if coords in self.chunks:
             return self.chunks[coords]
         else:
-            self.chunks[coords] = Chunk(coords)
+            self.chunks[coords] = self.chunk_class(coords)
 
     def debug_chunk(self, *coords):
         if isinstance(coords[0], (tuple, list)): coords = coords[0]
