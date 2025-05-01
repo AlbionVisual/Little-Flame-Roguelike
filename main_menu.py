@@ -50,8 +50,8 @@ class StartView(arcade.View):
     def on_key_press(self, key, mods):
         if key == arcade.key.F11:
             self.window.set_fullscreen(not self.window.fullscreen)
-            self.camera.viewport = self.window.rect
-            self.camera.projection = arcade.LRBT(0.0, self.width, 0.0, self.height)
+            # self.camera.viewport = self.window.rect
+            # self.camera.projection = arcade.LRBT(0.0, self.width, 0.0, self.height)
 
 class SubMenu(arcade.gui.UIMouseFilterMixin, arcade.gui.UIAnchorLayout):
     """Acts like a fake view/window."""
@@ -68,26 +68,24 @@ class SubMenu(arcade.gui.UIMouseFilterMixin, arcade.gui.UIAnchorLayout):
 
         frame.with_background(color=arcade.color.GRAY)
 
-        back_button = arcade.gui.UIFlatButton(text="Back", width=250)
-        back_button.on_click = self.on_click_back_button
+        widget_layout = arcade.gui.UIBoxLayout(align="center", space_between=10, size_hint_max=(245,320), size_hint=(245, 1))
 
         title_label = arcade.gui.UILabel(text=title, align="center", font_size=20, multiline=False)
-        title_label_space = arcade.gui.UISpace(height=30, color=arcade.color.DARK_BLUE_GRAY)
-
-        widget_layout = arcade.gui.UIBoxLayout(align="center", space_between=10, size_hint_max=(245,None))
-
+        title_label_space = arcade.gui.UISpace(height=15)
+        
         widget_layout.add(title_label)
         widget_layout.add(title_label_space)
 
         for widget in placables:
             widget_layout.add(widget)
 
-        widget_layout.add(back_button)
         frame.add(child=widget_layout, anchor_x="center_x", anchor_y="top")
 
+        back_button = arcade.gui.UIFlatButton(text="Back", width=245)
+        back_button.on_click = self.on_click_back_button
+        frame.add(back_button, anchor_y="bottom", anchor_x="center")
+
     def on_click_back_button(self, event = []):
-        # Removes the widget from the manager.
-        # After this the manager will respond to its events like it previously did.
         self.parent.remove(self)
 
 class OptionsMenu(SubMenu):
@@ -119,7 +117,7 @@ class OptionsMenu(SubMenu):
         v_box_algorithm.add(algorithm_label)
         v_box_algorithm.add(algorithm_dropdown)
 
-        save_button = arcade.gui.UIFlatButton(text="Save")
+        save_button = arcade.gui.UIFlatButton(text="Save", size_hint=(1000,None))
         @save_button.event("on_click")
         def on_click_save(event):
             parent.settings["ALGORITHM_NAME"] = algorithm_dropdown.value
@@ -142,8 +140,8 @@ class OptionsMenu(SubMenu):
 
 class PlayMenu(SubMenu):
     def __init__(self, parent):
-        game_mode_1_button = arcade.gui.UIFlatButton(text="Run mode")
-        game_mode_2_button = arcade.gui.UIFlatButton(text="Infinite mode")
+        game_mode_1_button = arcade.gui.UIFlatButton(text="Run mode", size_hint=(1000,None))
+        game_mode_2_button = arcade.gui.UIFlatButton(text="Infinite mode", size_hint=(1000,None))
 
         @game_mode_1_button.event("on_click")
         def on_click_game_mode_1(event):

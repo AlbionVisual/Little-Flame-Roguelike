@@ -76,7 +76,7 @@ class Map:
         return tuple(pos) in self.chunks
 
     def gen_light(self, pos, strength = 5):
-        return self.genTreeLightNoDiag(pos, strength)
+        return self.genTreeLight(pos, strength)
 
     def genTreeLightNoDiag(self, pos, strength = 5):
         vecs = [(-1,0), (0,1), (1,0), (0,-1), (-1,-1), (-1,1), (1,1), (1,-1)]

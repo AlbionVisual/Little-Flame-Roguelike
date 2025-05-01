@@ -1,5 +1,6 @@
 import arcade
 import arcade.gui
+from main_menu import StartView
 
 class GameOverView(arcade.View):
     """Main menu view class."""
@@ -13,7 +14,7 @@ class GameOverView(arcade.View):
         self.manager = arcade.gui.UIManager()
 
         start_new_game_button = arcade.gui.UIFlatButton(text="Start New Game", width=150)
-        exit_button = arcade.gui.UIFlatButton(text="Exit", width=320)
+        exit_button = arcade.gui.UIFlatButton(text="To main menu", width=150)
         game_over_text = arcade.gui.UILabel(text="Game over",font_size=70)
         timer_text = arcade.gui.UILabel(text="Time taken: " + time_taken, font_size=18,text_color=arcade.color.LIGHT_GRAY)
 
@@ -40,13 +41,13 @@ class GameOverView(arcade.View):
         @start_new_game_button.event("on_click")
         def on_click_start_new_game_button(event):
             # Create a new view because we are starting a new game.
-            game = main_view.__class__(-1, **main_view.settings)
-            game.setup()
-            self.window.show_view(game)
+            self.main_view.setup()
+            self.window.show_view(self.main_view)
 
         @exit_button.event("on_click")
         def on_click_exit_button(event):
-            arcade.exit()
+            start_view = StartView(main_view, **main_view.settings)
+            self.window.show_view(start_view)
 
     def on_hide_view(self):
         self.manager.disable()

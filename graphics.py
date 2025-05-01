@@ -15,8 +15,8 @@ class RoguelikeView(arcade.View):
         for option in new_settings:
             self.settings[option] = new_settings[option]
         super().__init__()
-        # super().__init__(self.settings['SCREEN_WIDTH'], self.settings['SCREEN_HEIGHT'], self.settings['SCREEN_TITLE'])
         arcade.set_background_color(arcade.csscolor.BLACK)
+
         self.scene = None
         self.player_sprite = None
         self.mouse_sprite = None
@@ -119,7 +119,6 @@ class RoguelikeView(arcade.View):
         self.player_sprite.center_y = self.settings['TILE_SIZE'] * 7 + self.settings['TILE_SIZE'] // 2
         self.scene.add_sprite("Player", self.player_sprite)
 
-
         self.mouse_sprite = arcade.SpriteSolidColor(
             width=self.settings['MOUSE_HIT_BOX_SIZE'][0],
             height=self.settings['MOUSE_HIT_BOX_SIZE'][1],
@@ -128,7 +127,6 @@ class RoguelikeView(arcade.View):
         self.mouse_sprite.center_x = 0
         self.mouse_sprite.center_y = 0
 
-        
         Algorithm_class = globals()[self.settings["ALGORITHM_NAME"]]
         Map.settings = self.settings
         self.map = Algorithm_class(seed)
@@ -166,9 +164,9 @@ class RoguelikeView(arcade.View):
 
         self.timer_value: float = 0.0
         self.timer_text = arcade.Text(
-            text="00:00:00",
-            x=self.settings["SCREEN_WIDTH"]-10,
-            y=self.settings["SCREEN_HEIGHT"]-10,
+            text="00:00.00",
+            x=self.window.width-10,
+            y=self.window.height-10,
             color=arcade.color.WHITE,
             font_size=12,
             anchor_x="right",
@@ -647,7 +645,7 @@ class RoguelikeView(arcade.View):
             minutes = int(self.timer_value) // 60
             seconds = int(self.timer_value) % 60
             seconds_100s = int((self.timer_value - 60 * minutes - seconds) * 100)
-            self.timer_text.text = f"{minutes:02d}:{seconds:02d}:{seconds_100s:02d}"
+            self.timer_text.text = f"{minutes:02d}:{seconds:02d}.{seconds_100s:02d}"
         
         # Check touchables
         self.pickup()
