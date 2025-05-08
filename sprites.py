@@ -87,7 +87,7 @@ default_settings = {
     'GAME_TYPE': 'INFINITE',
     'CAMERA_ALGORYTHM': 'OLD',
     'AMOUNT_OF_LAYERS':7,
-    'WALL_SPAWN_CHANCE':0.3,
+    'WALL_SPAWN_CHANCE':0.4,
     'MIN_WEIGHTS_COFF':0.2,
 
     'ANIM_MOVEMENT_RANGE': 5,
@@ -157,6 +157,12 @@ class EnemyCharacter(arcade.Sprite):
 
 class AtackArc(arcade.Sprite):
     swoop_textures = []
+    settings = {
+        'ARC_SCALING':2,
+        'ARC_DISTANCE_COFF':1,
+        'ARC_ANIM_SPEED':3,
+        'ARC_ANIM_FRAMES':4,
+    }
 
     def __init__(self, vec = (0, 1), scale = 1, pos = (0, 0)):
         scale *= AtackArc.settings["ARC_SCALING"]
