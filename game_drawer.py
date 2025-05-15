@@ -6,6 +6,7 @@ from game_over_view import GameOverView
 
 class GameDrawer(GameKeyboardBind, GameMouseBind):
     def on_update(self, delta_time):
+
         self.physics_engine.update()
         self.process_keychange()
 
@@ -13,6 +14,7 @@ class GameDrawer(GameKeyboardBind, GameMouseBind):
         if self.settings['CAMERA_ALGORYTHM'] == 'OLD':
             self.center_camera_to_player_old()
         else: self.center_camera_to_player()
+
         if self.player_sprite.get_chunk() != self.player_sprite.chunk:
             self.gen_map()
             self.draw_map()
@@ -61,6 +63,7 @@ class GameDrawer(GameKeyboardBind, GameMouseBind):
                 self.active_loot[(x, y)] = loot
                 if len(self.active_loot) > 1: self.check_crafts()
 
+
         # Update sprites
         for enemy in self.scene["Enemies"]:
             enemy.center_x += enemy.change_x
@@ -88,7 +91,7 @@ class GameDrawer(GameKeyboardBind, GameMouseBind):
         self.scene.update_animation(
             delta_time, ["Player", "Loot", "Items", "Enemies", "Effects"]
         )
-    
+
     def on_draw(self):
 
         self.clear()

@@ -60,7 +60,7 @@ class GameMapGenerator(GameSetup):
                     loot.chunk = (x, y)
                     chunk.loot[coord]['sprite'] = loot
                     self.scene.add_sprite("Loot" if data["pickable"] else "Items", loot)
-                
+
                 # for every enemy in chunk
                 to_remove = []
                 for (xi, yi), data in chunk.enemies.items():
@@ -83,7 +83,6 @@ class GameMapGenerator(GameSetup):
                         
                 for key in to_remove:
                     del chunk.enemies[key]
-                
                 
                 if (x - chunk_x)**2 + (y - chunk_y)**2 > R**2: continue # skip chunks not in a circle
                 drawn_chunks.add((x, y))

@@ -140,7 +140,7 @@ class OptionsMenu(SubMenu):
 
 class PlayMenu(SubMenu):
     def __init__(self, parent):
-        game_mode_1_button = arcade.gui.UIFlatButton(text="Run mode", size_hint=(1000,None))
+        game_mode_1_button = arcade.gui.UIFlatButton(text="Survival mode", size_hint=(1000,None))
         game_mode_2_button = arcade.gui.UIFlatButton(text="Infinite mode", size_hint=(1000,None))
 
         @game_mode_1_button.event("on_click")
