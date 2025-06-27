@@ -1,6 +1,6 @@
 import arcade
 import arcade.gui
-from main_menu import StartView
+from .main_menu import StartView
 
 class PauseMenuView(arcade.View):
     """Main menu view class."""

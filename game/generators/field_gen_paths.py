@@ -1,8 +1,8 @@
 import hashlib
 from pprint import pprint as print 
-from primitieves import *
-from map import Map
-from chunk import Chunk # type: ignore
+from .primitieves import *
+from .map import Map
+from .chunk import Chunk # type: ignore
 
 class ChunkPaths(Chunk):
     seed = -1

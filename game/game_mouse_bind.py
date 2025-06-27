@@ -1,5 +1,5 @@
 import arcade
-from game_map_generator import GameMapGenerator
+from .game_map_generator import GameMapGenerator
 
 class GameMouseBind(GameMapGenerator):
     def on_mouse_press(self, x, y, button, mods):
@@ -15,8 +15,8 @@ class GameMouseBind(GameMapGenerator):
                 chunk = self.map.get((posx // 16, posy // 16))
                 cell = chunk.field[posy % 16][posx % 16]
                 if len(cell) > 1 and cell[1].is_lighten:
-                    loot_collision = arcade.check_for_collision_with_list(self.mouse_sprite, self.scene['Loot'])
-                    items_collisions = arcade.check_for_collision_with_list(self.mouse_sprite, self.scene['Items'])
+                    loot_collision = arcade.check_for_collision_with_list(self.mouse_sprite, self.actor_scene['Loot'])
+                    items_collisions = arcade.check_for_collision_with_list(self.mouse_sprite, self.actor_scene['Items'])
                     if loot_collision: self.taken_item_sprite = loot_collision[0]
                     elif items_collisions: self.taken_item_sprite = items_collisions[0]
                 self.mouse_sprite.center_x -= self.player_sprite.center_x - self.camera.viewport_width / 2
@@ -51,7 +51,7 @@ class GameMouseBind(GameMapGenerator):
                                 break
                         self.drop(all = True, coords = (posx * self.settings['TILE_SIZE'], posy * self.settings['TILE_SIZE']))
                         self.selector_sprite.slot = before
-                    elif self.taken_item_sprite in self.scene['Loot'] or self.taken_item_sprite in self.scene['Items']:
+                    elif self.taken_item_sprite in self.actor_scene['Loot'] or self.taken_item_sprite in self.actor_scene['Items']:
                         coords = (posx * self.settings['TILE_SIZE'], posy * self.settings['TILE_SIZE'])
                         pos_x, pos_y = (int(i // self.settings['TILE_SIZE']) for i in coords)
                         chunk = self.map.get((pos_x // 16, pos_y // 16))
@@ -68,7 +68,7 @@ class GameMouseBind(GameMapGenerator):
                             self.taken_item_sprite.chunk = tuple(chunk.pos)
                             self.taken_item_sprite.pickable = False
                             self.taken_item_sprite.remove_from_sprite_lists()
-                            self.scene.add_sprite("Items", self.taken_item_sprite)
+                            self.actor_scene.add_sprite("Items", self.taken_item_sprite)
                             chunk.loot[(posx % 16, posy % 16)] = {'type': self.taken_item_sprite.type, 'pickable': False, 'sprite': self.taken_item_sprite}
                         elif chunk.loot[(posx % 16, posy % 16)]['type'] == self.taken_item_sprite.type:
                             chunk.loot[(posx % 16, posy % 16)]['sprite'].amount += self.taken_item_sprite.amount

@@ -1,5 +1,5 @@
-from graphics import RoguelikeView
-from main_menu import *
+from game import RoguelikeView
+from game.interfaces.main_menu import StartView
 import arcade
 import json
 

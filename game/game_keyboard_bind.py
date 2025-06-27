@@ -1,8 +1,8 @@
 import arcade
 from PIL import ImageFilter
-from game_player_controller import GamePlayerController
-from game_camera import GameCamera
-from puase_menu import PauseMenuView
+from .game_player_controller import GamePlayerController
+from .game_camera import GameCamera
+from .interfaces.puase_menu import PauseMenuView
 
 class GameKeyboardBind(GamePlayerController, GameCamera):
     def process_keychange(self):

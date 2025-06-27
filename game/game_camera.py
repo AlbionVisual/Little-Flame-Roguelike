@@ -1,5 +1,5 @@
 import arcade
-from game_setup import GameSetup
+from .game_setup import GameSetup
 
 class GameCamera(GameSetup):
 

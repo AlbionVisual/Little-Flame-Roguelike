@@ -1,4 +1,4 @@
-from game_drawer import GameDrawer
+from .game_drawer import GameDrawer
 
 class RoguelikeView(GameDrawer):
     ...

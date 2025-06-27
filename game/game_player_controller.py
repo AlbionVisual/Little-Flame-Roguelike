@@ -1,7 +1,7 @@
 import arcade
-from game_map_generator import GameMapGenerator
-from map import map_types_relation
-from sprites import *
+from .game_map_generator import GameMapGenerator
+from .generators.map import map_types_relation
+from .utils.sprites import *
 
 class GamePlayerController(GameMapGenerator):
     def change_lights(self, new_lights):
@@ -28,7 +28,7 @@ class GamePlayerController(GameMapGenerator):
     def check_crafts(self):
         templates = [
             { # Sword
-                'res': 7,
+                'res': 15,
                 'craft':[
                     ['#'],
                     ['#'],
@@ -38,7 +38,7 @@ class GamePlayerController(GameMapGenerator):
 
             },
             { # Axe
-                'res': 8,
+                'res': 1,
                 'craft':[
                     ['#', '#'],
                     ['$', '#'],
@@ -46,8 +46,16 @@ class GamePlayerController(GameMapGenerator):
                 ],
                 'amount': 1
             },
+            { # Boat
+                'res': 14,
+                'craft':[
+                    ['#', '*', '#'],
+                    ['#', '#', '#']
+                ],
+                'amount': 1
+            },
             { # Apple 
-                'res': 0,
+                'res': 10,
                 'craft':[
                     ['*', '$', '#', '*'],
                     ['#', '$', '#', '#'],

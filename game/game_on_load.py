@@ -1,5 +1,5 @@
 import arcade
-from sprites import *
+from .utils.sprites import *
 
 class GameOnLoad(arcade.View):
     def __init__(self, **new_settings):
@@ -8,7 +8,6 @@ class GameOnLoad(arcade.View):
             self.settings[option] = new_settings[option]
         super().__init__()
         arcade.set_background_color(arcade.csscolor.BLACK)
-
         self.scene = None
         self.player_sprite = None
         self.selector_sprite = None
@@ -34,15 +33,15 @@ class GameOnLoad(arcade.View):
             arcade.load_texture('Textures/Loot/log_oak.png'),
             arcade.load_texture('Textures/Loot/ladder.png'),
             arcade.load_texture('Textures/Loot/jungle_boat.png'),
-            arcade.load_texture('Textures/Loot/birch_boat.png'),
-            arcade.load_texture('Textures/Loot/door_birch.png'),
+            arcade.load_texture('Textures/Loot/crafting_table_front.png'),
+            arcade.load_texture('Textures/Loot/bookshelf.png'),
             arcade.load_texture('Textures/Loot/carrot.png'),
             arcade.load_texture('Textures/Loot/feather.png'),
             arcade.load_texture('Textures/Loot/apple.png'),
             arcade.load_texture('Textures/Loot/fish.png'),
+            arcade.load_texture('Textures/Loot/door_birch.png'),
             arcade.load_texture('Textures/Loot/jukebox_side.png'),
-            arcade.load_texture('Textures/Loot/crafting_table_front.png'),
-            arcade.load_texture('Textures/Loot/bookshelf.png'),
+            arcade.load_texture('Textures/Loot/birch_boat.png'),
             arcade.load_texture('Textures/Loot/stone_sword.png'),
         ]
         self.interface_textures = {

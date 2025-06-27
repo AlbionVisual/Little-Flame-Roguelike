@@ -1,9 +1,9 @@
-from game_setup import GameSetup
-from sprites import *
-from map import map_types_relation
-from map import Map
-from map_layers import MapLayers
-from field_gen_paths import MapPaths
+from .game_setup import GameSetup
+from .utils.sprites import *
+from .generators.map import map_types_relation
+from .generators.map import Map
+from .generators.map_layers import MapLayers
+from .generators.field_gen_paths import MapPaths
 
 class GameMapGenerator(GameSetup):
 

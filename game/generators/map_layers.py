@@ -1,5 +1,5 @@
-from map import Map
-from chunk import Chunk # type: ignore
+from .map import Map
+from .chunk import Chunk # type: ignore
 
 class ChunkLayers(Chunk):
     def __init__(self, p, *args):
@@ -11,9 +11,12 @@ class ChunkLayers(Chunk):
         ChunkLayers.layers_offsets = []
         ChunkLayers.layers_weights = []
         weights_sum = 0
+        ChunkLayers.layers_offsets = [[0,0]for _ in range(ChunkLayers.settings['AMOUNT_OF_LAYERS'])]
+        ChunkLayers.layers_offsets[2] = [1,1]
+        ChunkLayers.layers_offsets[3] = [3,3]
         for i in range(ChunkLayers.settings['AMOUNT_OF_LAYERS']):
-            ChunkLayers.layers_offsets += [(ChunkLayers.hash_func(2**i + 1, 7) % (2**i),
-                                    ChunkLayers.hash_func(2**i + 1, 11) % (2**i))]
+            # ChunkLayers.layers_offsets += [(ChunkLayers.hash_func(2**i + 1, 7) % (2**i),
+            #                         ChunkLayers.hash_func(2**i + 1, 11) % (2**i))]
             ChunkLayers.layers_weights += [ChunkLayers.hash_func(2**i + 31, 17) % (ChunkLayers.hash_max - 2*ChunkLayers.settings['MIN_WEIGHTS_COFF'] * ChunkLayers.hash_max) + ChunkLayers.settings['MIN_WEIGHTS_COFF'] * ChunkLayers.hash_max]
             weights_sum += ChunkLayers.layers_weights[-1]
         ChunkLayers.layers_weights = [i / weights_sum for i in ChunkLayers.layers_weights]

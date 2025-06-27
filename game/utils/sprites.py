@@ -30,21 +30,21 @@ default_settings = {
 
     'CHARACTER_SCALING': 1 / 16,
     'PLAYER_MOVEMENT_SPEED': 3,
-    "HEALTH_BOOST": 0.05,
+    "HEALTH_BOOST": 0.005,
     "HEALTH_LOSS_COFF": 0.5,
     'PLAYER_ANIM_FRAMES': 32,
     "MAX_LIGHT_STRENGTH":6,
     "MIN_LIGHT_STRENGTH":1,
-    "PLAYER_ATACK_RANGE":2,
+    "PLAYER_ATACK_RANGE":1,
 
-    'ARC_SCALING': 1.4,
+    'ARC_SCALING': 1,
     'ARC_DISTANCE_COFF': 20,
     'ARC_ANIM_FRAMES': 7,
     'ARC_ANIM_SPEED': 0.4,
 
     'ENEMY_SCALING': 1 / 16,
     'ENEMY_HIT_BOX': [(-16.0, -16.0), (16.0, -16.0), (16.0, 16.0), (-16.0, 16.0)],
-    'ENEMY_ANIM_FRAMES': 31,
+    'ENEMY_ANIM_FRAMES': 27,
     'ENEMIES_SPAWN_ATTEMPTS': 1,
     'ENEMIES_SPAWN_CHANCE': 100,
     "ENEMY_HEAT_POINTS": 0.2,
@@ -67,8 +67,8 @@ default_settings = {
 
     'LOOT_SCALING': 2,
     'LOOT_HIT_BOX': [(-8.0, -8.0), (8.0, -8.0), (8.0, 8.0), (-8.0, 8.0)],
-    'LOOT_SPAWN_ATTEMPTS': 5,
-    'LOOT_SPAWN_CHANCE': 60,
+    'LOOT_SPAWN_ATTEMPTS': 8,
+    'LOOT_SPAWN_CHANCE': 40,
     'LOOT_TYPES_AMOUNT': 9,
     
     'MOUSE_HIT_BOX_SIZE': (3.0, 3.0),
@@ -86,7 +86,7 @@ default_settings = {
     },
     'GAME_TYPE': 'INFINITE',
     'CAMERA_ALGORYTHM': 'OLD',
-    'AMOUNT_OF_LAYERS':7,
+    'AMOUNT_OF_LAYERS':5,
     'WALL_SPAWN_CHANCE':0.4,
     'MIN_WEIGHTS_COFF':0.2,
 

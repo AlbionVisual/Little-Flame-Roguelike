@@ -1,10 +1,11 @@
 import arcade
-from game_keyboard_bind import GameKeyboardBind
-from game_mouse_bind import GameMouseBind
+from .game_keyboard_bind import GameKeyboardBind
+from .game_mouse_bind import GameMouseBind
 from PIL import ImageFilter
-from game_over_view import GameOverView
+from .interfaces.gameover_view import GameOverView
 
 class GameDrawer(GameKeyboardBind, GameMouseBind):
+        
     def on_update(self, delta_time):
 
         self.physics_engine.update()
@@ -18,12 +19,14 @@ class GameDrawer(GameKeyboardBind, GameMouseBind):
         if self.player_sprite.get_chunk() != self.player_sprite.chunk:
             self.gen_map()
             self.draw_map()
-        
+
+
         arg = self.map.gen_light(
                 (int(self.player_sprite.center_x // self.settings['TILE_SIZE']), int(self.player_sprite.center_y // self.settings['TILE_SIZE'])),
                 self.player_sprite.health * (self.settings["MAX_LIGHT_STRENGTH"] - self.settings["MIN_LIGHT_STRENGTH"]) + self.settings["MIN_LIGHT_STRENGTH"]
         )
         if arg != self.lighten: self.change_lights(arg)
+
 
         # Updating things for Run gamemode
         if self.settings["GAME_TYPE"] == "RUN":
@@ -57,11 +60,14 @@ class GameDrawer(GameKeyboardBind, GameMouseBind):
             self.player_sprite, self.scene["Items"] 
         )
         for loot in footed_loot:
+
+
             x, y = (loot.pos[i] + val * 16 for i, val in enumerate(loot.chunk))
             if (x, y) not in self.active_loot:
                 loot.is_active = True
                 self.active_loot[(x, y)] = loot
-                if len(self.active_loot) > 1: self.check_crafts()
+                if len(self.active_loot) > 1:
+                    self.check_crafts()
 
 
         # Update sprites

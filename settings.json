@@ -5,5 +5,6 @@
     "ALGORITHM_NAME": "MapLayers",
     "HEALTH_BOOST": 0.2,
     "HEALTH_LOSS_COFF": 60,
-    "CAMERA_ALGORYTHM": "OLD"
+    "CAMERA_ALGORYTHM": "OLD",
+    "WALL_SPAWN_CHANCE":0.3
 }

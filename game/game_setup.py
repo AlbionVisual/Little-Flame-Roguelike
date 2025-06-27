@@ -1,6 +1,7 @@
 import arcade
-from game_on_load import GameOnLoad
-from sprites import *
+from .game_on_load import GameOnLoad
+from .utils.sprites import *
+from .utils.sprite_list_pull import ChunkSpriteListPull
 
 
 class GameSetup(GameOnLoad):
@@ -30,19 +31,20 @@ class GameSetup(GameOnLoad):
         elif self.settings["GAME_TYPE"] == "RUN":
             ...
    
-        self.scene.get_sprite_list("Enemies").clear() # Очистка списков спрайтов (на случай, если мы перезапускаем уровень)
-        self.scene.get_sprite_list("Loot").clear()
-        self.scene.get_sprite_list("Items").clear()
-        self.scene.get_sprite_list("Walls").clear()
-        self.scene.get_sprite_list("Floor").clear()
-        self.scene.get_sprite_list("Effects").clear()
+        self.actor_scene.get_sprite_list("Enemies").clear() # Очистка списков спрайтов (на случай, если мы перезапускаем уровень)
+        self.actor_scene.get_sprite_list("Loot").clear()
+        self.actor_scene.get_sprite_list("Items").clear()
+        self.actor_scene.get_sprite_list("Effects").clear()
 
-        self.scene.get_sprite_list("Player").clear() # Пересоздание игрока
+        self.map_scene.get_sprite_list("Walls").clear()
+        self.map_scene.get_sprite_list("Floor").clear()
+
+        self.actor_scene.get_sprite_list("Player").clear() # Пересоздание игрока
         self.player_sprite = PlayerCharacter(self.player_textures)
         self.player_sprite.center_x = self.settings['TILE_SIZE'] * 7 + self.settings['TILE_SIZE'] // 2
         self.player_sprite.center_y = self.settings['TILE_SIZE'] * 7 + self.settings['TILE_SIZE'] // 2
-        self.scene.add_sprite("Player", self.player_sprite)
-
+        self.actor_scene.add_sprite("Player", self.player_sprite)
+        
         self.mouse_sprite = arcade.SpriteSolidColor( # Для взаимодействия мыши с предметами, лежащими на карте
             width=self.settings['MOUSE_HIT_BOX_SIZE'][0],
             height=self.settings['MOUSE_HIT_BOX_SIZE'][1],
@@ -54,11 +56,13 @@ class GameSetup(GameOnLoad):
         cell0 = TileSprite() # Показать движку с какими предметами работать
         cell0.center_x = self.settings['TILE_SIZE'] // 2
         cell0.center_y = self.settings['TILE_SIZE'] // 2
-        self.scene.add_sprite("Walls", cell0)
+        self.map_scene.add_sprite("Walls", cell0)
         self.physics_engine = arcade.PhysicsEngineSimple(
-            self.player_sprite, self.scene.get_sprite_list("Walls")
+            self.player_sprite, self.map_scene.get_sprite_list("Walls")
         )
         cell0.remove_from_sprite_lists()
+
+        self.map_sprite_lists = ChunkSpriteListPull(self.map_scene, "map_tiles_", sprite_type=TileSprite, context_object=self)
 
         self.interface = arcade.Scene() # Создание сцены с интерфесом
         self.interface.add_sprite_list("Icons", use_spatial_hash=True)

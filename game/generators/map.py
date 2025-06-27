@@ -1,15 +1,5 @@
 from random import randint
-from chunk import Chunk # type: ignore
-
-map_types_relation = {
-    0: 'nothing',
-    1: 'floor',
-    2: 'wall',
-    3: 'inv_floor',
-    4: 'inv_wall',
-    5: 'lighten_floor',
-    6: 'lighten_wall'
-}
+from .chunk import Chunk # type: ignore
 
 class Map:
     settings = {
@@ -143,7 +133,10 @@ class Map:
 
         while queue:
             el = queue.pop()
-            checkCell(el)
+            try:
+                checkCell(el)
+            except ...:
+                print('sth wrong')
         
         return floor, walls
 
