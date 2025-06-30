@@ -57,7 +57,7 @@ class GameDrawer(GameKeyboardBind, GameMouseBind):
 
         # Add new active loot when player went through it
         footed_loot = arcade.check_for_collision_with_list(
-            self.player_sprite, self.scene["Items"] 
+            self.player_sprite, self.actor_scene["Items"] 
         )
         for loot in footed_loot:
 
@@ -71,9 +71,9 @@ class GameDrawer(GameKeyboardBind, GameMouseBind):
 
 
         # Update sprites
-        for enemy in self.scene["Enemies"]:
+        for enemy in self.actor_scene["Enemies"]:
             enemy.center_x += enemy.change_x
-            walls_hit = arcade.check_for_collision_with_list(enemy, self.scene["Walls"])
+            walls_hit = arcade.check_for_collision_with_list(enemy, self.map_scene["Walls"])
             for wall in walls_hit:
                 if enemy.change_x > 0:
                     enemy.right = wall.left
@@ -83,7 +83,7 @@ class GameDrawer(GameKeyboardBind, GameMouseBind):
                 enemy.change_x *= -1
 
             enemy.center_y += enemy.change_y
-            walls_hit = arcade.check_for_collision_with_list(enemy, self.scene["Walls"])
+            walls_hit = arcade.check_for_collision_with_list(enemy, self.map_scene["Walls"])
             for wall in walls_hit:
                 if enemy.change_y > 0:
                     enemy.top = wall.bottom
@@ -92,9 +92,9 @@ class GameDrawer(GameKeyboardBind, GameMouseBind):
             if len(walls_hit) > 0:
                 enemy.change_y *= -1
         
-        self.scene["Enemies"].update(delta_time)
+        self.actor_scene["Enemies"].update(delta_time)
 
-        self.scene.update_animation(
+        self.actor_scene.update_animation(
             delta_time, ["Player", "Loot", "Items", "Enemies", "Effects"]
         )
 
@@ -104,9 +104,10 @@ class GameDrawer(GameKeyboardBind, GameMouseBind):
 
         self.camera.use()
         # Draw map and sprites
-        self.scene.draw()
+        self.map_scene.draw()
+        self.actor_scene.draw()
 
-        # self.scene.draw_hit_boxes(names=["Enemies","Player"]) # if you want to see hitboxes
+        # self.actor_scene.draw_hit_boxes(names=["Enemies","Player"]) # if you want to see hitboxes
 
         self.gui_camera.use()
         # Draw interface
@@ -138,8 +139,8 @@ class GameDrawer(GameKeyboardBind, GameMouseBind):
                 f'X, Y: {int(self.player_sprite.position[0] // tile_size), int(self.player_sprite.position[1] // tile_size)}',
                 'In chunk x, y: ' + str(int(self.player_sprite.position[0] // tile_size) % 16) + ' ' + str(int(self.player_sprite.position[1] // tile_size) % 16),
                 f'Chunk x, y: {self.player_sprite.chunk}',
-                'Walls: ' + str(len(self.scene['Walls'])),
-                'Floors: ' + str(len(self.scene['Floor']))
+                'Walls: ' + str(len(self.map_scene['Walls'])),
+                'Floors: ' + str(len(self.map_scene['Floor']))
                 # 'Standing on: ' + str(self.map.getCell(*[int(i/self.settings['TILE_SIZE']) for i in self.player_sprite.position]))
             ]
             line_height = 25

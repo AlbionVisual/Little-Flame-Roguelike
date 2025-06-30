@@ -1,7 +1,7 @@
 import arcade
 from .game_on_load import GameOnLoad
 from .utils.sprites import *
-from .utils.sprite_list_pull import ChunkSpriteListPull
+# from .utils.sprite_list_pull import ChunkSpriteListPull
 
 
 class GameSetup(GameOnLoad):
@@ -62,7 +62,7 @@ class GameSetup(GameOnLoad):
         )
         cell0.remove_from_sprite_lists()
 
-        self.map_sprite_lists = ChunkSpriteListPull(self.map_scene, "map_tiles_", sprite_type=TileSprite, context_object=self)
+        # self.map_sprite_lists = ChunkSpriteListPull(self.map_scene, "map_tiles_", sprite_type=TileSprite, context_object=self)
 
         self.interface = arcade.Scene() # Создание сцены с интерфесом
         self.interface.add_sprite_list("Icons", use_spatial_hash=True)

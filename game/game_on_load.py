@@ -8,7 +8,8 @@ class GameOnLoad(arcade.View):
             self.settings[option] = new_settings[option]
         super().__init__()
         arcade.set_background_color(arcade.csscolor.BLACK)
-        self.scene = None
+
+        self.map_sprite_lists = None
         self.player_sprite = None
         self.selector_sprite = None
         self.mouse_sprite = None
@@ -61,13 +62,14 @@ class GameOnLoad(arcade.View):
             tile['texture'] = arcade.load_texture(tile['texture'])
             tile['lighten_texture'] = arcade.load_texture(tile['lighten_texture'])
 
-        self.scene = arcade.Scene()
+        self.actor_scene = arcade.Scene()
+        self.map_scene = arcade.Scene()
 
-        self.scene.add_sprite_list("Walls", use_spatial_hash=True)
-        self.scene.add_sprite_list("Floor", use_spatial_hash=True)
-        self.scene.add_sprite_list("Loot", use_spatial_hash=True)
-        self.scene.add_sprite_list("Items", use_spatial_hash=True)
-        self.scene.add_sprite_list("Testables", use_spatial_hash=True)
-        self.scene.add_sprite_list("Player")
-        self.scene.add_sprite_list("Enemies")
-        self.scene.add_sprite_list("Effects")
+        self.map_scene.add_sprite_list("Walls", use_spatial_hash=True)
+        self.map_scene.add_sprite_list("Floor", use_spatial_hash=True)
+        self.actor_scene.add_sprite_list("Loot", use_spatial_hash=True)
+        self.actor_scene.add_sprite_list("Items", use_spatial_hash=True)
+        self.actor_scene.add_sprite_list("Testables", use_spatial_hash=True)
+        self.actor_scene.add_sprite_list("Player")
+        self.actor_scene.add_sprite_list("Enemies")
+        self.actor_scene.add_sprite_list("Effects")

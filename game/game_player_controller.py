@@ -1,6 +1,6 @@
 import arcade
 from .game_map_generator import GameMapGenerator
-from .generators.map import map_types_relation
+from .utils.constants import map_types_relation
 from .utils.sprites import *
 
 class GamePlayerController(GameMapGenerator):
@@ -14,11 +14,11 @@ class GamePlayerController(GameMapGenerator):
                 if not cell.is_visible: cell.set_tile( self.tile_textures[map_types_relation[i+1]] ) 
                 cell.change_texture(light = True)
         
-        for loot in self.scene["Loot"]:
+        for loot in self.actor_scene["Loot"]:
             if map_types_relation[self.map.get(loot.chunk).field[loot.pos[1]][loot.pos[0]][0]] == 'lighten_floor':
                 loot.change_texture(self.loot_textures[loot.type])
         
-        for enemy in self.scene["Enemies"]:
+        for enemy in self.actor_scene["Enemies"]:
             if map_types_relation[self.map.get(enemy.chunk).field[enemy.pos[1]][enemy.pos[0]][0]] == 'lighten_floor':
                 enemy.visible = True
 
@@ -147,7 +147,7 @@ class GamePlayerController(GameMapGenerator):
                 loot.amount = temp['amount'] * amount
                 loot.chunk = (x, y)
                 chunk.loot[(xi, yi)] = {'type': temp['res'], 'sprite': loot}
-                self.scene.add_sprite("Loot", loot)
+                self.actor_scene.add_sprite("Loot", loot)
 
                 return
     
@@ -168,7 +168,7 @@ class GamePlayerController(GameMapGenerator):
                 loot.type = self.labels[slot]['type']
                 loot.chunk = tuple(chunk.pos)
                 if all: loot.amount = self.score[slot]
-                self.scene.add_sprite("Items", loot)
+                self.actor_scene.add_sprite("Items", loot)
                 chunk.loot[(posx % 16, posy % 16)] = {'type': self.labels[slot]['type'], 'pickable': False, 'sprite': loot}
                 
                 
@@ -207,7 +207,7 @@ class GamePlayerController(GameMapGenerator):
         if sprites is None: sprites = []                            # Selecting sprites
         if scene:
             sprites += arcade.check_for_collision_with_list(
-                self.player_sprite, self.scene[scene]
+                self.player_sprite, self.actor_scene[scene]
             )
         for loot in sprites:                                        # for every sprite in list
 
@@ -220,7 +220,7 @@ class GamePlayerController(GameMapGenerator):
                 if len(self.active_loot) > 1: self.check_crafts()
                 loot.is_active = False
 
-            if scene: self.scene[scene].remove(loot)                # remove sprite from field
+            if scene: self.actor_scene[scene].remove(loot)                # remove sprite from field
             if not loot.is_in_inventory(): del self.map.get(loot.chunk).loot[loot.pos]
             else: continue                                          # skip if dragged from inventory
 
@@ -244,7 +244,7 @@ class GamePlayerController(GameMapGenerator):
 
     def enemy_collision(self):
         collided = arcade.check_for_collision_with_list(
-            self.player_sprite, self.scene["Enemies"]
+            self.player_sprite, self.actor_scene["Enemies"]
         )
         for enemy in collided:
             if enemy.striking:
@@ -261,10 +261,10 @@ class GamePlayerController(GameMapGenerator):
             vec = (shoot_x, shoot_y), 
             scale=PlayerCharacter.settings["PLAYER_ATACK_RANGE"]
         )
-        self.scene.add_sprite("Effects", arc)
+        self.actor_scene.add_sprite("Effects", arc)
         collided = arcade.check_for_collision_with_list(
             arc,
-            self.scene["Enemies"]
+            self.actor_scene["Enemies"]
         )
         for enemy in collided: # finally remove those enemies from the game
             ans = None

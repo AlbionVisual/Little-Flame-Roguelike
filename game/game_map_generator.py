@@ -1,6 +1,6 @@
 from .game_setup import GameSetup
 from .utils.sprites import *
-from .generators.map import map_types_relation
+from .utils.constants import map_types_relation
 from .generators.map import Map
 from .generators.map_layers import MapLayers
 from .generators.field_gen_paths import MapPaths
@@ -29,9 +29,9 @@ class GameMapGenerator(GameSetup):
 
     def draw_map(self, chunk_x = None, chunk_y = None):
 
-        # self.scene.get_sprite_list("Enemies").clear()
-        self.scene.get_sprite_list("Loot").clear()
-        self.scene.get_sprite_list("Items").clear()
+        # self.actor_scene.get_sprite_list("Enemies").clear()
+        self.actor_scene.get_sprite_list("Loot").clear()
+        self.actor_scene.get_sprite_list("Items").clear()
 
         # Count player's chunk as center one 
         if chunk_x == None: chunk_x = self.player_sprite.chunk[0]
@@ -59,7 +59,7 @@ class GameMapGenerator(GameSetup):
                     loot.type = data['type']
                     loot.chunk = (x, y)
                     chunk.loot[coord]['sprite'] = loot
-                    self.scene.add_sprite("Loot" if data["pickable"] else "Items", loot)
+                    self.actor_scene.add_sprite("Loot" if data["pickable"] else "Items", loot)
 
                 # for every enemy in chunk
                 to_remove = []
@@ -73,10 +73,10 @@ class GameMapGenerator(GameSetup):
                         enemy.pos = (xi, yi)
                         enemy.chunk = (x, y)
                         chunk.enemies[(xi, yi)]['sprite'] = enemy
-                        self.scene.add_sprite("Enemies", enemy)
+                        self.actor_scene.add_sprite("Enemies", enemy)
                     else:
                         enemy = data['sprite']
-                        # self.scene.add_sprite("Enemies", enemy)
+                        # self.actor_scene.add_sprite("Enemies", enemy)
                         to_remove+=[(xi,yi)]
                         # self.map.get(enemy.get_chunk()).enemies[enemy.pos]
                         # enemy.chunk = enemy.get_chunk()
@@ -106,15 +106,15 @@ class GameMapGenerator(GameSetup):
                             else:
                                 cell[1].change_texture(light = 0)           # or set texture for visibles
                             if tile_type[-4:] == 'wall':
-                                if cell[1] in self.scene.get_sprite_list("Floor"):
+                                if cell[1] in self.map_scene.get_sprite_list("Floor"):
                                     print('err: drawing the wall already in sprite list')
                                 else: 
-                                    self.scene.add_sprite("Walls", cell[1])
+                                    self.map_scene.add_sprite("Walls", cell[1])
                             else:
-                                if cell[1] in self.scene.get_sprite_list("Floor"):
+                                if cell[1] in self.map_scene.get_sprite_list("Floor"):
                                     print('err: drawing the floor already in sprite list!')
                                 else: 
-                                    self.scene.add_sprite("Floor", cell[1])
+                                    self.map_scene.add_sprite("Floor", cell[1])
 
         for x, y in self.drawn_chunks - drawn_chunks:                       # for every far chunk
             chunk = self.map.get((x, y))
@@ -123,8 +123,8 @@ class GameMapGenerator(GameSetup):
                     if len(cell) == 2:                                      # for every cell with tile sprite
                         tile_type = map_types_relation[cell[0]]
                         if tile_type[-4:] == 'wall':
-                            self.scene.get_sprite_list("Walls").remove(cell[1])
+                            self.map_scene.get_sprite_list("Walls").remove(cell[1])
                         else:
-                            self.scene.get_sprite_list("Floor").remove(cell[1])
+                            self.map_scene.get_sprite_list("Floor").remove(cell[1])
 
         self.drawn_chunks = drawn_chunks
